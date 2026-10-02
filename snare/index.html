@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<!--
+  Snare Roller
+  Copyright (c) 2026 amovar1 - original at https://amovar1.github.io/snare/
+  License: MIT + Commons Clause. Free to use, host and modify; not to be sold or
+  charged for. Keep this notice and the visible link to the original in every
+  copy, and say so if you modify it. See the LICENSE file. Samples you export
+  with this tool are yours, with no conditions.
+-->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Snare Roller</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f4f1ec;--card:#fff;--ink:#1c1b19;--mut:#6b675f;--acc:#d9481c;--line:#ddd7cc}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161513;--card:#222018;--ink:#f1ede4;--mut:#9b958a;--acc:#ff6a3d;--line:#3a362d}}
+:root[data-theme="dark"]{--bg:#161513;--card:#222018;--ink:#f1ede4;--mut:#9b958a;--acc:#ff6a3d;--line:#3a362d}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:900px;margin:0 auto;padding:24px 16px 48px}
+h1{font-size:26px;margin:0 0 4px}p.sub{color:var(--mut);margin:0 0 20px}
+#drop{border:2px dashed var(--line);border-radius:14px;padding:36px 16px;text-align:center;cursor:pointer;background:var(--card)}
+#drop.over{border-color:var(--acc)}#drop b{color:var(--acc)}
+.ctl{display:flex;flex-direction:column;gap:10px;margin:18px 0 10px}
+.cg{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px 12px}
+.cgt{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin-bottom:8px}
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:end}
+.ctl label{display:flex;flex-direction:column;font-size:13px;color:var(--mut);gap:4px;min-width:150px;flex:1 1 150px;max-width:260px}
+.ctl label.chk{flex-direction:row;align-items:center;gap:6px;min-width:0;flex:0 0 auto;max-width:none}
+.ctl input[type=range]{width:100%}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.hint{font-size:12px;color:var(--mut);margin:0 0 12px}
+#tl{display:flex;height:24px;border-radius:6px;overflow:hidden;margin-top:10px;border:1px solid var(--line);background:var(--bg)}
+.seg{display:flex;align-items:center;justify-content:center;font-size:11px;white-space:nowrap;overflow:hidden;min-width:0}
+.seg.hit{background:var(--acc);color:#fff}
+.seg.ring{background:var(--mut);color:var(--card)}
+.seg.tail{background:repeating-linear-gradient(135deg,var(--line) 0 6px,transparent 6px 12px);color:var(--ink)}
+#tlmsg{font-size:12px;color:var(--mut);margin-top:6px;min-height:16px}
+button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:8px 14px;cursor:pointer}
+button.p{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+button.s{padding:5px 10px;font-size:13px}
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+#grid .grp{grid-column:1/-1;margin:14px 0 0;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+.card.sel{border-color:var(--acc)}
+.card h3{margin:0 0 2px;font-size:15px}.card p{margin:0 0 10px;color:var(--mut);font-size:13px}
+.card .r{display:flex;gap:6px;flex-wrap:wrap}.card .meta{font-size:12px;color:var(--mut);margin-top:8px}
+#ed{margin-bottom:16px}
+#ed .top{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+#ed .top h2{font-size:17px;margin:0;flex:1;min-width:140px}
+#edscroll{overflow-x:auto;overflow-y:hidden;padding-bottom:6px}
+#edinner{position:relative}
+.lab,.dur{color:var(--mut)}
+.lab{font-size:13px;margin:12px 0 4px}
+.dur{font-size:12px;margin:3px 0 0}
+.lab span,.dur span{position:sticky;left:0;display:inline-block}
+canvas{box-sizing:border-box;display:block;background:var(--bg);border:1px solid var(--line);border-radius:8px;touch-action:none;cursor:crosshair}
+.pre{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+[hidden]{display:none!important}
+select{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
+.ctl label select{width:100%}
+#xinfo{font-size:12px;color:var(--mut);margin-top:10px;min-height:16px}
+:root{--red:#d00000}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--red:#ff5a5a}}
+:root[data-theme="dark"]{--red:#ff5a5a}
+.redbox{border:2px solid var(--red);border-radius:10px;padding:8px 12px 10px;margin-top:12px}
+.redbox label{color:var(--red);font-weight:600;max-width:420px;flex:none;width:100%}
+.redbox input[type=range]{accent-color:var(--red)}
+.redtxt{font-size:12px;color:var(--red);margin-top:4px}
+#bar{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--bg);padding:8px 0;margin:10px 0;border-bottom:1px solid var(--line)}
+#bar label.chk{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--mut)}
+#msg{flex-basis:100%;font-size:13px;color:var(--mut)}#msg:empty{display:none}
+#grid{display:block}
+.gh{display:block;width:100%;text-align:left;margin:18px 0 8px;font-size:15px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink);background:var(--card);border:1px solid var(--line);border-left:6px solid var(--acc);border-radius:8px;padding:10px 14px}
+.gcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(262px,1fr));gap:8px}
+.card{padding:8px 10px}
+.card .ct{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.card h3{margin:0 0 6px;font-size:14px}
+.card .r button{padding:4px 8px;font-size:12.5px;white-space:nowrap}
+.card .meta{font-size:11px;margin-top:5px}
+.edot{font-size:11px;color:var(--acc);white-space:nowrap}
+#ed.card{padding:14px}
+#credit{margin:36px 0 0;padding-top:14px;border-top:1px solid var(--line);font-size:12px;color:var(--mut);text-align:center;line-height:1.7}
+#credit a{color:var(--acc)}
+
+.zl b{display:inline-block;min-width:3.4em}
+.dur{min-height:2.7em}
+.zl{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--mut)}.zl input{width:110px}
+</style></head><body><main>
+<h1>Snare Roller</h1>
+<p class="sub">Drop a one-shot snare (WAV, AIFF or FLAC). Get jazz bounces, ghost notes, rolls and rudiments as new WAV, AIFF or FLAC files for your sampler.</p>
+<div id="drop" title="Drop a one-shot snare here, or click to pick a file (WAV, AIFF or FLAC)"><b>Drag &amp; drop a snare here</b><br><span style="color:var(--mut)">or click to choose a file</span><input id="file" type="file" accept=".wav,.aif,.aiff,.aifc,.flac,audio/*" hidden></div>
+<div id="info" style="margin-top:8px;color:var(--mut);font-size:14px"></div>
+<div id="bar">
+  <button class="p" id="gen" title="Builds new variations with your current settings. Samples you have edited are kept as they are.">Generate / re-roll</button>
+  <button id="regen" title="Builds every sample fresh and throws away all your hit and envelope edits.">Re-roll all (discard edits)</button>
+  <button id="zipall" title="Downloads every sample at once, in your Export format, packed in a single ZIP file.">⬇ All as ZIP</button>
+  <label class="chk" title="Makes the loudest peak of each sample the same level (just under full volume). Applies instantly."><input id="norm" type="checkbox" checked><span>Normalize output</span></label>
+  <label class="chk" title="Re-rolls by itself when you let go of a slider, so you can hear changes without pressing Generate. Edited samples are kept."><input id="auto" type="checkbox"><span>Auto re-roll</span></label>
+  <div id="msg"></div>
+</div>
+
+<div class="ctl">
+  <div class="cg"><div class="cgt">Length and feel</div><div class="row">
+    <label title="The exact length of every file you export"><span>Total time: <b id="lv">2.00 s</b></span><input id="len" type="range" min="50" max="5000" step="10" value="2000"></label>
+    <label title="Time between strokes in rolls, rudiments and ghost-note figures"><span>Note spacing: <b id="sv">100 ms</b></span><input id="sp" type="range" min="8" max="500" step="1" value="100"></label>
+    <label title="How much the timing of each hit wanders"><span>Humanize tempo: <b id="htv">50%</b></span><input id="humt" type="range" min="0" max="100" value="50"></label>
+    <label title="How much each hit's volume and tone wander"><span>Humanize dynamics: <b id="hdv">50%</b></span><input id="humd" type="range" min="0" max="100" value="50"></label>
+  </div></div>
+
+  <div class="cg"><div class="cgt">End of the sample</div><div class="row">
+    <label class="chk" title="Keeps room after the last hit for your snare to fade out naturally. Off lets hits run right to the end of the file."><input id="ringon" type="checkbox" checked><span>Let the last hit ring out</span></label>
+    <label title="Extra silence reserved after the ring-out. It comes out of the total time."><span>Extra silence at the end: <b id="tv">0 ms</b></span><input id="tail" type="range" min="0" max="750" step="10" value="0"></label>
+  </div>
+  <div class="redbox">
+    <label title="How long each hit is allowed to ring before it fades away. Shorter leaves more of the file for your hits. All the way up = the snare's full natural ring-out."><span>Ring-out length: <b id="rlv" title="The natural ring-out is measured up to the point where your snare has dropped 50 dB below its loudest moment (the -50 dB threshold). Silence after that point is ignored.">Original snare</b></span><input id="ringlen" type="range" min="50" max="1000" step="10" value="1000"></label>
+    <div class="redtxt" id="rlhelp">How long each hit rings before it fades. Shorter = more room for your hits in the file.</div>
+    <div class="btns" style="margin-top:8px"><button class="s" id="rlShort" title="Sets the ring-out to 200 ms: a short, old-sampler-style snare that leaves lots of room for hits.">Short snare (200 ms)</button><button class="s" id="rlNat" title="Lets every hit ring for the snare's full natural ring-out (measured at the -50 dB threshold).">Natural ring</button><span id="rlnote" style="font-size:12px;color:var(--red)"></span></div>
+    <div class="redtxt" id="rlwarn" hidden></div>
+  </div>
+  <div id="tl"><div class="seg hit" id="tl1">hits</div><div class="seg ring" id="tl2">ring-out</div><div class="seg tail" id="tl3">silence</div></div>
+  <div id="tlmsg"></div></div>
+
+  <div class="cg"><div class="cgt">Stick bounces</div><div class="row">
+    <label title="Time from the main hit to the first bounce (each bounce pattern scales this a little)"><span>Bounce gap: <b id="bgv">120 ms</b></span><input id="bgap" type="range" min="10" max="600" step="1" value="120"></label>
+    <label title="How fast the gaps between bounces shrink. Lower = bounces bunch up faster."><span>Bounce decay: <b id="bdv">75%</b></span><input id="bdec" type="range" min="50" max="95" value="75"></label>
+  </div></div>
+
+  <div class="cg"><div class="cgt">Ghost notes</div><div class="row">
+    <label title="How quiet the ghost notes are in the jazz patterns"><span>Ghost loudness: <b id="glv">22%</b></span><input id="ghl" type="range" min="5" max="50" value="22"></label>
+    <label title="Makes soft hits darker and shorter, like real ghost notes. 0 = off. Applies instantly."><span>Ghost tone: <b id="gtv">40%</b></span><input id="gtone" type="range" min="0" max="100" value="40"></label>
+  </div></div>
+
+  <div class="cg"><div class="cgt">Export format: used by every download</div>
+    <div class="btns" style="margin-bottom:12px"><button class="s" id="preSafe" title="WAV, 16-bit, 44.1 kHz, mono: the format nearly every sampler can read">Safe for older gear</button><button class="s" id="preMod" title="WAV, 24-bit, the sample's own sample rate, channels kept">Modern</button></div>
+    <div class="row">
+      <label title="WAV is read by nearly everything. AIFF suits Mac-era samplers and software. FLAC is smaller, but fewer samplers can load it."><span>File type</span><select id="xfmt"><option value="wav">WAV</option><option value="aiff">AIFF</option><option value="flac">FLAC</option></select></label>
+      <label title="16-bit is the standard for older samplers. 24-bit keeps more detail for modern gear."><span>Bit depth</span><select id="xbit"><option value="16">16-bit</option><option value="24" selected>24-bit</option></select></label>
+      <label title="Original keeps your sample's own rate. 44100 Hz is the safe choice for most samplers; 48000 Hz is the video/studio standard. Conversion uses a high-quality filter."><span>Sample rate</span><select id="xsr"><option value="0">Original</option><option value="44100">44100 Hz</option><option value="48000">48000 Hz</option></select></label>
+      <label title="Mono mixes left and right into one channel: half the file size, and what many older samplers expect."><span>Channels</span><select id="xch"><option value="keep">Same as the sample</option><option value="mono">Mono (mix down)</option></select></label>
+    </div>
+    <div id="xinfo"></div>
+    <div class="hint" style="margin:6px 0 0">Whatever you set here is used by every ⬇ button on the samples, by the download button in the editor, and by “All as ZIP”.</div>
+  </div>
+
+</div>
+<p class="hint">Sliders apply when you press Generate / re-roll (or turn on Auto re-roll). Samples you have edited are kept; “Re-roll all” discards the edits. Ghost tone, Normalize and the Export settings apply instantly.</p>
+
+<section id="ed" class="card" hidden>
+  <div class="top"><h2 id="edt"></h2><label class="zl" title="Zoom in to edit fine detail. 1× fits the whole sample in the view with no sideways scrolling; zoomed in, scroll sideways to move around."><span>Zoom <b id="zv">1×</b></span><input id="zoom" type="range" min="1" max="10" step="0.25" value="1"></label><button class="s" id="zfit" title="Back to 1×: the whole sample fits in the view.">Fit</button><button class="p s" id="edplay" title="Play this sample with your edits.">▶ Play</button><button class="s" id="eddl" title="Download this sample in your Export format.">⬇ WAV</button><button class="s" id="edreset" title="Puts every hit volume back to how it was generated. The envelope is not changed (use Flat for that).">Reset hits</button><button class="s" id="edclose" title="Closes the editor. Your edits stay saved on this sample.">Close</button></div>
+  <div id="edscroll"><div id="edinner">
+    <div class="lab"><span>Individual hit volume: one bar per hit. Click or drag across the bars (up = louder). </span></div>
+    <canvas id="cv1" title="Hit volumes: click or drag across the bars to set each hit's volume (up = louder)."></canvas>
+    <div class="dur"><span id="d1"></span></div>
+    <div class="lab"><span>Overall envelope: runs from the start until the sound drops 50 dB below its peak. Click to add a point, drag to move, right-click a point to delete it.</span></div>
+    <canvas id="cv2" title="Overall envelope: click to add a point, drag to move it, right-click a point to delete it."></canvas>
+    <div class="dur"><span id="d2"></span></div>
+  </div></div>
+  <div class="pre"><button class="s" data-pre="flat">Flat</button><button class="s" data-pre="out">Fade out</button><button class="s" data-pre="in">Fade in</button><button class="s" data-pre="swell">Swell</button><button class="s" data-pre="duck">Duck &amp; return</button></div>
+</section>
+<div id="grid"></div>
+<footer id="credit">Snare Roller · made by <b>amovar1</b> · get the original at <a href="https://amovar1.github.io/snare/" target="_blank" rel="noopener">amovar1.github.io/snare</a><br>Free to use and host, not to be sold. The samples you export are yours, no strings.</footer>
+</main>
+<script>
+let S=null,name="snare",curSrc=null,AC=null,pats=[],edIdx=-1,count=0,cutNote="";
+const $=id=>document.getElementById(id);
+const R=(a,b)=>a+Math.random()*(b-a);
+const fmtT=ms=>ms<1000?ms+" ms":(ms/1000).toFixed(2)+" s";
+const pc=v=>v+"%",msf=v=>v+" ms";
+function bind(id,out,f,after){$(id).addEventListener("input",()=>{$(out).textContent=f(+$(id).value);if(after)after()})}
+const drop=$("drop");
+drop.onclick=()=>$("file").click();
+drop.ondragover=e=>{e.preventDefault();drop.classList.add("over")};
+drop.ondragleave=()=>drop.classList.remove("over");
+drop.ondrop=e=>{e.preventDefault();drop.classList.remove("over");load(e.dataTransfer.files[0])};
+$("file").onchange=e=>load(e.target.files[0]);
+$("gen").onclick=()=>S&&generate(false);
+$("regen").onclick=()=>S&&generate(true);
+$("norm").onchange=()=>{if(S){pats.forEach(renderPat);updateMetas();if(edIdx>=0)drawEd()}};
+$("gtone").onchange=$("norm").onchange;   // tone is a render setting: apply it to what's already on screen
+
+function ctx(){return AC||(AC=new (window.AudioContext||window.webkitAudioContext)())}
+async function load(f){
+  if(!f)return;
+  try{
+    const buf=await f.arrayBuffer();
+    let d;
+    try{d=decodeFile(buf)}
+    catch(e){ // not a plain WAV / AIFF / FLAC: let the browser try (it may change the sample rate)
+      const ab=await ctx().decodeAudioData(buf.slice(0));
+      d={ch:[...Array(Math.min(2,ab.numberOfChannels))].map((_,i)=>ab.getChannelData(i).slice()),sr:ab.sampleRate,fmt:"audio",bits:0};
+    }
+    const {ch,sr}=d;
+    if(!ch[0]||!ch[0].length)throw 0;
+    S={ch,sr,ring:measureRing(ch,sr),fmt:d.fmt,bits:d.bits};name=f.name.replace(/\.[^.]+$/,"");
+    setupRing();setupExport();
+    const bd=typeof d.bits==="number"&&d.bits?`${d.bits}-bit `:(d.bits?d.bits+" ":"");
+    $("info").textContent=`${f.name} — ${(ch[0].length/sr*1000).toFixed(0)} ms, ${sr} Hz, ${bd}${ch.length===2?"stereo":"mono"} ${d.fmt} · natural ring-out ${Math.round(S.ring*1000)} ms (where it drops 50 dB below its peak)`;
+    refresh();generate(true);
+  }catch(e){$("info").textContent="Couldn't read that file. Try a standard PCM WAV, AIFF or FLAC."}
+}
+
+// ---------- readers: they keep the file's own sample rate ----------
+function decodeFile(buf){
+  const u=new Uint8Array(buf),t=String.fromCharCode(u[0],u[1],u[2],u[3]);
+  if(t==="RIFF")return parseWav(buf);
+  if(t==="FORM")return parseAiff(buf);
+  if(t==="fLaC")return parseFlac(buf);
+  throw new Error("unknown format");
+}
+const tag4=(v,o)=>String.fromCharCode(v.getUint8(o),v.getUint8(o+1),v.getUint8(o+2),v.getUint8(o+3));
+function parseWav(buf){
+  const v=new DataView(buf);
+  if(tag4(v,8)!=="WAVE")throw new Error("not wave");
+  let o=12,fmt=null,ds=-1,dl=0;
+  while(o+8<=buf.byteLength){
+    const id=tag4(v,o),sz=v.getUint32(o+4,true);
+    if(id==="fmt "){let tg=v.getUint16(o+8,true);
+      if(tg===0xFFFE&&sz>=26)tg=v.getUint16(o+32,true);   // WAVE_FORMAT_EXTENSIBLE: the real type is in the sub-format
+      fmt={tg,nc:v.getUint16(o+10,true),sr:v.getUint32(o+12,true),bits:v.getUint16(o+22,true)}}
+    else if(id==="data"&&ds<0){ds=o+8;dl=Math.min(sz,buf.byteLength-ds)}
+    o+=8+sz+(sz&1);
+  }
+  if(!fmt||ds<0||!fmt.nc||!fmt.sr)throw new Error("bad wave");
+  const {tg,nc,sr,bits}=fmt,B=bits/8;
+  if(!((tg===1&&(bits===8||bits===16||bits===24||bits===32))||(tg===3&&(bits===32||bits===64))))throw new Error("unsupported wave");
+  const nf=Math.floor(dl/(B*nc)),outC=Math.min(nc,2),ch=[...Array(outC)].map(()=>new Float32Array(nf));
+  for(let i=0;i<nf;i++)for(let c=0;c<outC;c++){
+    const p=ds+(i*nc+c)*B;let x;
+    if(tg===3)x=bits===32?v.getFloat32(p,true):v.getFloat64(p,true);
+    else if(B===1)x=(v.getUint8(p)-128)/128;
+    else if(B===2)x=v.getInt16(p,true)/32768;
+    else if(B===3){let n=v.getUint8(p)|(v.getUint8(p+1)<<8)|(v.getUint8(p+2)<<16);if(n&0x800000)n-=0x1000000;x=n/8388608}
+    else x=v.getInt32(p,true)/2147483648;
+    ch[c][i]=x}
+  return{ch,sr,fmt:"WAV",bits:tg===3?"float"+bits:bits};
+}
+function parseAiff(buf){
+  const v=new DataView(buf);
+  if(tag4(v,0)!=="FORM")throw new Error("not aiff");
+  const aifc=tag4(v,8)==="AIFC";
+  let o=12,nc=0,nf=0,bits=0,sr=0,ds=-1,comp="NONE";
+  while(o+8<=buf.byteLength){
+    const id=tag4(v,o),sz=v.getUint32(o+4);
+    if(id==="COMM"){nc=v.getInt16(o+8);nf=v.getUint32(o+10);bits=v.getInt16(o+14);
+      const ex=v.getUint16(o+16)&0x7fff;sr=Math.round(v.getUint32(o+18)*Math.pow(2,ex-16383-31));
+      if(aifc&&sz>=22)comp=tag4(v,o+26)}
+    if(id==="SSND"&&ds<0)ds=o+16+v.getUint32(o+8);
+    o+=8+sz+(sz&1);
+  }
+  if(!nc||!sr||ds<0)throw new Error("bad aiff");
+  const le=comp==="sowt",fl=comp==="fl32"||comp==="FL32"||comp==="fl64"||comp==="FL64",raw=comp==="raw ";
+  if(!le&&!fl&&!raw&&comp!=="NONE"&&comp!=="twos")throw new Error("compressed aiff");
+  const B=bits/8,outC=Math.min(nc,2),ch=[...Array(outC)].map(()=>new Float32Array(nf));
+  nf=Math.min(nf,Math.floor((buf.byteLength-ds)/(B*nc)));
+  for(let i=0;i<nf;i++)for(let c=0;c<outC;c++){
+    const p=ds+(i*nc+c)*B;let x;
+    if(fl)x=B===4?v.getFloat32(p):v.getFloat64(p);
+    else if(B===2)x=v.getInt16(p,le)/32768;
+    else if(B===3){let n=le?(v.getUint8(p)|(v.getUint8(p+1)<<8)|(v.getUint8(p+2)<<16)):((v.getUint8(p)<<16)|(v.getUint8(p+1)<<8)|v.getUint8(p+2));if(n&0x800000)n-=0x1000000;x=n/8388608}
+    else if(B===4)x=v.getInt32(p,le)/2147483648;
+    else x=raw?(v.getUint8(p)-128)/128:v.getInt8(p)/128;
+    ch[c][i]=x}
+  return{ch:ch.map(a=>a.length===nf?a:a.subarray(0,nf)),sr,fmt:"AIFF",bits:fl?"float"+bits:bits};
+}
+function parseFlac(buf){
+  const u=new Uint8Array(buf);let pos=4,info=null,last=false;
+  while(!last&&pos+4<=u.length){
+    const h=u[pos];last=!!(h&128);const len=(u[pos+1]<<16)|(u[pos+2]<<8)|u[pos+3];
+    if((h&127)===0){const d=pos+4;
+      info={sr:(u[d+10]<<12)|(u[d+11]<<4)|(u[d+12]>>4),nc:((u[d+12]>>1)&7)+1,bps:(((u[d+12]&1)<<4)|(u[d+13]>>4))+1,
+        total:(u[d+13]&15)*4294967296+u[d+14]*16777216+(u[d+15]<<16)+(u[d+16]<<8)+u[d+17]}}
+    pos+=4+len;
+  }
+  if(!info||info.bps>24)throw new Error("unsupported flac");
+  let bp=pos*8;
+  const rb=n=>{let x=0;while(n>0){const bi=bp>>3;if(bi>=u.length)throw new Error("eof");
+    const av=8-(bp&7),tk=Math.min(av,n);x=x*(1<<tk)+((u[bi]>>(av-tk))&((1<<tk)-1));bp+=tk;n-=tk}return x};
+  const rs=n=>{if(!n)return 0;const x=rb(n);return x>=Math.pow(2,n-1)?x-Math.pow(2,n):x};
+  const ru=()=>{let q=0;while(rb(1)===0)q++;return q};
+  const resid=(x,ord,bs)=>{
+    const method=rb(2),po=rb(4),np=1<<po,pb=method?5:4,esc=method?31:15;let i=ord;
+    for(let p=0;p<np;p++){
+      const n=(p===0?(bs>>po)-ord:(bs>>po)),k=rb(pb);
+      if(k===esc){const nb=rb(5);for(let j=0;j<n;j++)x[i++]=nb?rs(nb):0}
+      else for(let j=0;j<n;j++){const q=ru(),r=k?rb(k):0,z=q*Math.pow(2,k)+r;x[i++]=(z%2)?-(z+1)/2:z/2}
+    }};
+  const subframe=(bs,sb)=>{
+    rb(1);const type=rb(6);let wasted=0;
+    if(rb(1)){wasted=1;while(rb(1)===0)wasted++}
+    const b=sb-wasted,x=new Int32Array(bs);
+    if(type===0)x.fill(rs(b));
+    else if(type===1){for(let i=0;i<bs;i++)x[i]=rs(b)}
+    else if(type>=32){
+      const ord=(type&31)+1;for(let i=0;i<ord;i++)x[i]=rs(b);
+      const prec=rb(4)+1,shift=rs(5),co=[];for(let i=0;i<ord;i++)co.push(rs(prec));
+      resid(x,ord,bs);const dv=Math.pow(2,shift);
+      for(let i=ord;i<bs;i++){let s=0;for(let j=0;j<ord;j++)s+=co[j]*x[i-1-j];x[i]+=Math.floor(s/dv)}
+    }else if(type>=8&&type<=12){
+      const ord=type&7;for(let i=0;i<ord;i++)x[i]=rs(b);resid(x,ord,bs);
+      for(let i=ord;i<bs;i++){let p=0;
+        if(ord===1)p=x[i-1];else if(ord===2)p=2*x[i-1]-x[i-2];
+        else if(ord===3)p=3*x[i-1]-3*x[i-2]+x[i-3];else if(ord===4)p=4*x[i-1]-6*x[i-2]+4*x[i-3]-x[i-4];
+        x[i]+=p}
+    }else throw new Error("bad subframe");
+    if(wasted){const m=Math.pow(2,wasted);for(let i=0;i<bs;i++)x[i]*=m}
+    return x};
+  const nc=info.nc,chunks=[...Array(nc)].map(()=>[]);let got=0;
+  const SSB=[info.bps,8,12,info.bps,16,20,24,32];
+  while((bp>>3)+6<u.length&&(info.total===0||got<info.total)){
+    if(rb(14)!==0x3FFE)throw new Error("lost sync");
+    rb(1);rb(1);const bsc=rb(4),src=rb(4),ca=rb(4),ssc=rb(3);rb(1);
+    const b0=rb(8),ex=b0>=0xFC?5:b0>=0xF8?4:b0>=0xF0?3:b0>=0xE0?2:b0>=0xC0?1:0;for(let i=0;i<ex;i++)rb(8);
+    const bs=bsc===1?192:(bsc>=2&&bsc<=5)?576*(1<<(bsc-2)):bsc===6?rb(8)+1:bsc===7?rb(16)+1:bsc>=8?256*(1<<(bsc-8)):0;
+    if(!bs)throw new Error("bad block");
+    if(src===12)rb(8);else if(src===13||src===14)rb(16);
+    rb(8);
+    const cn=ca<8?ca+1:2;if(cn!==nc)throw new Error("channel mismatch");
+    const bits=SSB[ssc],xs=[];
+    for(let c=0;c<cn;c++){
+      const side=(ca===8&&c===1)||(ca===9&&c===0)||(ca===10&&c===1);
+      xs.push(subframe(bs,bits+(side?1:0)))}
+    if(ca===8){for(let i=0;i<bs;i++)xs[1][i]=xs[0][i]-xs[1][i]}                       // left + side -> right
+    else if(ca===9){for(let i=0;i<bs;i++)xs[0][i]=xs[0][i]+xs[1][i]}                   // side + right -> left
+    else if(ca===10){for(let i=0;i<bs;i++){const s=xs[1][i],m=(xs[0][i]*2)+(s&1);xs[0][i]=(m+s)>>1;xs[1][i]=(m-s)>>1}}
+    bp=(bp+7)&~7;bp+=16;
+    for(let c=0;c<nc;c++)chunks[c].push(xs[c]);got+=bs;
+  }
+  const n=info.total?Math.min(info.total,got):got,sc=1/Math.pow(2,info.bps-1),outC=Math.min(nc,2),ch=[];
+  for(let c=0;c<outC;c++){const a=new Float32Array(n);let o=0;
+    for(const k of chunks[c]){for(let i=0;i<k.length&&o<n;i++)a[o++]=k[i]*sc}ch.push(a)}
+  return{ch,sr:info.sr,fmt:"FLAC",bits:info.bps};
+}
+
+// ---------- ring-out: how long the original sample really sounds ----------
+// The last moment (in 2 ms steps) where the sample is still within `db` dB of its own peak. Silent padding after it is ignored.
+function measureRing(ch,sr,db=-50){
+  const w=Math.max(1,Math.round(sr*.002)),n=ch[0].length,steps=Math.ceil(n/w),env=new Float32Array(steps);let peak=0;
+  for(let k=0;k<steps;k++){let m=0;for(const d of ch)for(let i=k*w;i<Math.min(n,(k+1)*w);i++){const a=Math.abs(d[i]);if(a>m)m=a}env[k]=m;if(m>peak)peak=m}
+  const thr=peak*Math.pow(10,db/20);let last=0;for(let k=0;k<steps;k++)if(env[k]>=thr)last=k;
+  return Math.max(.01,Math.min(n/sr,(last+1)*w/sr));
+}
+
+// ---------- the file's layout: [ hits window | ring-out | extra silence ] = total time ----------
+const TT=()=>+$("len").value/1000;
+// ring-out length: how long each hit may ring. Never longer than the sample's natural ring-out; shorter hits fade away smoothly.
+const rlFmt=v=>S&&v>=+$("ringlen").max?`Original snare (${Math.round(S.ring*1000)} ms)`:v+" ms";
+const ringEff=()=>{const nat=S?S.ring:.3;return Math.max(.01,Math.min(nat,+$("ringlen").value/1000))};
+function setupRing(){
+  const rs=$("ringlen"),mx=Math.max(10,Math.ceil(S.ring*100)*10);
+  rs.min=Math.min(50,mx);rs.max=mx;rs.value=mx;$("rlv").textContent=rlFmt(+rs.value);
+  $("rlNat").textContent=`Natural ring (${Math.round(S.ring*1000)} ms)`;$("rlShort").textContent=`Short snare (${Math.min(200,mx)} ms)`;
+  $("rlnote").textContent=`Your snare naturally rings for about ${Math.round(S.ring*1000)} ms.`;
+}
+const setRing=ms=>{if(!S)return;const rs=$("ringlen");rs.value=Math.min(+rs.max,Math.max(+rs.min,ms));rs.dispatchEvent(new Event("input"))};
+$("rlShort").onclick=()=>setRing(200);
+$("rlNat").onclick=()=>setRing(1e9);
+function win(){
+  const T=TT(),ringOn=$("ringon").checked,ring0=ringEff(),extra=+$("tail").value/1000;
+  const ring=ringOn?Math.min(ring0,T*.6):0;                       // never let the ring-out take more than 60% of the file
+  let span=T-ring-extra,squeezed=false;
+  const minSpan=Math.min(T,Math.max(.02,T*.25));                   // the hits always keep at least a quarter of the file
+  if(span<minSpan){span=minSpan;squeezed=true}
+  return{T,ring,extra,span,squeezed};
+}
+function syncLimits(){ // the spacing slider can't go past what fits in the hits window, so its label never lies
+  const w=win(),m=Math.max(8,Math.min(500,Math.floor(w.span*1000/2))),s=$("sp");
+  s.max=m;if(+s.value>m){s.value=m;$("sv").textContent=m+" ms"}
+}
+function drawTimeline(){
+  const w=win(),tot=w.span+w.ring+w.extra;
+  const seg=(id,v)=>{const e=$(id);e.style.width=(v/tot*100)+"%";e.style.display=v>.0004?"flex":"none"};
+  seg("tl1",w.span);seg("tl2",w.ring);seg("tl3",w.extra);
+  let t=`Hits play in the first ${fmtT(Math.round(w.span*1000))} · ring-out ${fmtT(Math.round(w.ring*1000))}`+(w.extra>0?` · extra silence ${fmtT(Math.round(w.extra*1000))}`:"");
+  if(S&&ringEff()<S.ring-1e-4)t+=` (shortened from the natural ${Math.round(S.ring*1000)} ms, with a smooth fade)`;
+  if(!$("ringon").checked)t+=" (ring-out off: the last hit can be cut off by the end of the file)";
+  if(w.squeezed)t+=" · ⚠ Not enough room: the ring-out and silence are being squeezed to keep a hits window";
+  if(cutNote)t+=" · "+cutNote;
+  $("tlmsg").textContent=t;
+  const wn=$("rlwarn"),big=S&&$("ringon").checked&&ringEff()>.5*w.T;
+  wn.hidden=!big;if(big)wn.textContent=`Ring-out is taking most of the file. Try Short snare (${Math.min(200,+$("ringlen").max)} ms).`;
+}
+function refresh(){syncLimits();drawTimeline();xinfo()}
+bind("len","lv",fmtT,refresh);
+bind("sp","sv",msf);
+bind("humt","htv",pc);bind("humd","hdv",pc);
+bind("tail","tv",msf,refresh);bind("ringlen","rlv",rlFmt,refresh);
+bind("bgap","bgv",msf);bind("bdec","bdv",pc);
+bind("ghl","glv",pc);bind("gtone","gtv",pc);
+$("ringon").onchange=refresh;
+
+// ---------- pattern generators: each returns the hit list [{t,v,p}] (seconds, velocity 0-1, semitones) ----------
+// The editor draws one control per entry of this list, and the renderer plays exactly this list.
+function P(){
+  const w=win(),sp0=+$("sp").value/1000;
+  return{...w,ht:+$("humt").value/100,hd:+$("humd").value/100,
+    sp:Math.max(.004,Math.min(sp0,w.span/2)),
+    bg:+$("bgap").value/1000,bd:+$("bdec").value/100,gl:+$("ghl").value/100};
+}
+const jt=(gap,ht)=>R(-.2,.2)*gap*ht;                                  // timing humanize
+const jv=(v,hd)=>Math.max(.02,Math.min(1,v*(1+R(-.25,.25)*hd)));      // dynamics humanize
+const jp=hd=>R(-.25,.25)*hd;                                          // slight tone variation, follows dynamics
+const mk=c=>(t,v,gap)=>({t:t>0?Math.max(0,t+jt(gap||c.sp,c.ht)):0,v:jv(v,c.hd),p:jp(c.hd)});
+function fin(h){ // sort, and keep every hit at least 2 ms from the previous so none sit on top of each other
+  h.sort((a,b)=>a.t-b.t);
+  for(let i=1;i<h.length;i++)if(h[i].t<h[i-1].t+.002)h[i].t=h[i-1].t+.002;
+  return h;
+}
+function done(h,c){ // hits that would start after the hits window are dropped, so the last hit always has room to ring out
+  fin(h);const lim=c.span+Math.max(.003,c.sp*.25),keep=h.filter(x=>x.t<=lim);
+  keep.cut=h.filter(x=>x.t>lim&&x.v>=.06).length;   // only hits you would actually hear count as "didn't fit"
+  return keep;
+}
+function evenRoll(v0,v1,acc,endV=1,sm=1){ // sm stretches the spacing (an open roll uses more than 1)
+  const c=P(),h=mk(c),sp=c.sp*sm,n=Math.max(2,Math.floor(c.span/sp)),out=[];
+  for(let i=0;i<n;i++){const k=i/(n-1);out.push(h(i*sp,(v0+(v1-v0)*k)*(i%2?acc:1),sp))}
+  out.push(h(n*sp,endV,sp));return done(out,c);
+}
+function swellRoll(){ // soft, loudest in the middle, soft again
+  const c=P(),h=mk(c),n=Math.max(3,Math.floor(c.span/c.sp)),out=[];
+  for(let i=0;i<n;i++){const k=i/(n-1);out.push(h(i*c.sp,.15+.85*Math.sin(Math.PI*k)))}
+  out.push(h(n*c.sp,.3));return done(out,c);
+}
+function pulseRoll(){ // the speed breathes in and out, three times
+  const c=P(),h=mk(c),out=[];let t=0,i=0;
+  while(t<c.span&&i<600){const k=t/c.span,r=1+.7*Math.sin(2*Math.PI*k*3),gap=c.sp*r;
+    out.push(h(t,.5+.4*(1.7-r)/1.4,gap));t+=gap;i++}
+  out.push(h(Math.min(t,c.span),1));return done(out,c);
+}
+function diddle(vs,hands){ // sticking groups: one accent, the rest soft taps; right and left hand differ by a hair, like two real hands
+  const c=P(),h=mk(c),L=vs.length,g=Math.max(1,Math.floor(c.span/c.sp/L)),out=[];
+  for(let i=0;i<g*L;i++){const k=h(i*c.sp,vs[i%L]);k.p+=hands[i%L]==="R"?.06:-.06;out.push(k)}
+  const k=h(g*L*c.sp,1);k.p+=hands[0]==="R"?.06:-.06;out.push(k);return done(out,c);
+}
+function warpRoll(fromMul,toMul,v0,v1){ // spacing changes smoothly across the roll
+  const c=P(),h=mk(c),out=[];let t=0,i=0;
+  while(t<c.span&&i<600){
+    const k=t/c.span,gap=c.sp*fromMul*Math.pow(toMul/fromMul,k);
+    out.push(h(t,(v0+(v1-v0)*k)*(i%2?.88:1),gap));t+=gap;i++;
+  }
+  out.push(h(Math.min(t,c.span),1));return done(out,c);
+}
+function buzzRoll(){ // dense, smooth press roll
+  const c=P(),h=mk(c),sb=Math.max(.005,c.sp*.4),n=Math.min(600,Math.max(2,Math.floor(c.span/sb))),out=[];
+  for(let i=0;i<n;i++){const k=i/(n-1);out.push(h(i*sb,(.5+.2*k)*(i%2?.9:1),sb))}
+  out.push(h(n*sb,1,sb));return done(out,c);
+}
+function rudiment(k){ // k double strokes (RR LL RR ...) then an accented single: 5, 7 and 9-stroke rolls
+  const c=P(),h=mk(c),out=[];
+  for(let i=0;i<2*k;i++)out.push(h(i*c.sp,i%2?.58:.74));
+  out.push(h(2*k*c.sp,1));return done(out,c);
+}
+function tripleRoll(){ // RRR LLL ... in groups of three, ends on an accent
+  const c=P(),h=mk(c),g=Math.max(1,Math.floor(c.span/c.sp/3)),vs=[.82,.6,.55],out=[];
+  for(let i=0;i<g*3;i++)out.push(h(i*c.sp,vs[i%3]));
+  out.push(h(g*3*c.sp,1));return done(out,c);
+}
+function double(){ // double strokes with an accent every four
+  const c=P(),h=mk(c),n=Math.max(2,Math.floor(c.span/c.sp)),out=[];
+  for(let i=0;i<n;i++)out.push(h(i*c.sp,i%4===0?1:(i%2?.5:.62)));
+  return done(out,c);
+}
+// Stick bounce. Timing comes from the Bounce gap / Bounce decay sliders (not from Note spacing):
+// the first gap is Bounce gap x gm, every next gap is the previous one x decay. Humanize tempo also varies the gap and the decay,
+// so every re-roll is a genuinely different bounce. o.main = first hit, o.v1 = first bounce, o.vel = how fast bounces fade.
+function bounce(o){
+  const c=P(),h=mk(c),floor=.006,maxN=o.count||80;
+  const G=c.bg*(o.gm||1)*(1+R(-.25,.25)*c.ht);
+  const ratio=Math.max(.35,Math.min(.97,(c.bd+(o.dd||0))*(1+R(-.25,.25)*c.ht)));
+  const vel=Math.max(.2,Math.min(.97,o.vel*(1+R(-.15,.15)*c.hd)));
+  const main=o.main||1,v1=o.v1?(typeof o.v1==="function"?o.v1(c):o.v1):main*vel;
+  // A real bouncing stick: as the gaps bunch up, each bounce is also much quieter (gap and loudness shrink together).
+  // Buzz patterns enforce that, and the tiny closing buzz is irregular and very soft, so it can't turn into a machine gun or a steady tone.
+  const vr=o.buzz?Math.min(vel,ratio*.96):vel;
+  let g=G,t=0,v=v1;const raw=[{t:0,v:main}];
+  while(g>floor&&raw.length<maxN){t+=g;raw.push({t,v:o.buzz?v*Math.pow(Math.min(1,g/.035),1.5):v});v*=vr;g*=ratio}
+  if(o.buzz){let vb=Math.max(.05,Math.min(.1,v*1.2)),gb=.011,k=0;
+    while(vb>.03&&k<10&&t<c.span){t+=gb*R(.65,1.45);raw.push({t,v:vb});vb*=.82;gb=Math.max(.006,gb*.95);k++}}
+  if(o.buzz)for(let i=raw.length-1;i>0;i--)if(raw[i].v<.03)raw.splice(i,1);   // drop the hits nobody could hear
+  let r=raw;
+  if(o.rev){const E=raw[raw.length-1].t;r=raw.map(q=>({t:E-q.t,v:q.v})).reverse()}
+  const out=r.map((q,i)=>{
+    const gp=Math.abs((r[i+1]||r[i-1]||{t:q.t+.02}).t-q.t),hit=h(q.t,q.v,gp);
+    if(!o.rev)hit.p-=i*.015;return hit});
+  return done(out,c);
+}
+// ghost-note figures
+function ghostPickup(n,shrink){ // n ghost notes speeding into an accent
+  const c=P(),h=mk(c),out=[];let t=0,g=c.sp;
+  for(let i=0;i<n;i++){out.push(h(t,c.gl*(1+.3*i/Math.max(1,n-1)),g));t+=g;g*=shrink}
+  out.push(h(t,.85,g));return done(out,c);
+}
+function swingFigure(){ // accent, ghosts, accent on a triplet grid (Note spacing = one triplet step)
+  const c=P(),h=mk(c),u=c.sp,pos=[0,2,3,5,6],vs=[.85,c.gl,c.gl*1.15,.7,c.gl*.9];
+  return done(pos.map((k,i)=>h(k*u,vs[i],u)),c);
+}
+// more comping figures on the same triplet grid (Note spacing = one triplet step; a beat = 3 steps)
+function tripFig(pos,vf){const c=P(),h=mk(c),u=c.sp,v=vf(c);return done(pos.map((k,i)=>h(k*u,v[i],u)),c)}
+const swungEighths=()=>tripFig([0,2,3,5,6,8,9,11],c=>[.8,c.gl*2,.8,c.gl*2,.8,c.gl*2,.8,c.gl*2]);   // long-short eighths on all four beats
+const charleston=()=>tripFig([0,2,5],c=>[.9,c.gl,.8]);                          // beat 1, then the "and" of 2
+const spangALang=()=>tripFig([0,3,5,6,9,11],c=>[.85,.75,.5,.82,.75,.5]);         // the ride pattern (ding, ding-a, ding, ding-a) played on snare
+const ghostInto24=()=>tripFig([0,1,6,7],c=>[c.gl,.9,c.gl*1.1,.85]);              // a ghost note leaning into the backbeat on 2 and 4
+const tripletGhostRun=()=>tripFig([0,1,2,3,4,5,6],c=>[.85,c.gl,c.gl*1.2,.7,c.gl,c.gl*1.3,.9]); // accents on the beat, ghosts filling the triplets
+function ghostPress(){ // whisper-quiet buzz that swells and fades
+  const c=P(),h=mk(c),sb=Math.max(.006,c.sp*.4),n=Math.min(500,Math.max(3,Math.floor(c.span/sb))),out=[];
+  for(let i=0;i<n;i++){const k=i/(n-1);out.push(h(i*sb,c.gl*(.7+.9*Math.sin(Math.PI*k))*(i%2?.9:1),sb))}
+  return done(out,c);
+}
+function dragGhostBounce(){ // ghost drag, accent, then soft bounces
+  const c=P(),h=mk(c),g=R(.022,.032)*(1+c.ht*.3),b=g*2.1;
+  const out=[h(0,c.gl,g),h(g,c.gl*1.25,g),{t:b,v:jv(.85,c.hd*.5),p:0}];
+  let t=b,gap=c.bg;
+  [c.gl*1.6,c.gl*1.1,c.gl*.8].forEach(v=>{t+=gap;out.push(h(t,v,gap));gap*=Math.max(.4,Math.min(.95,c.bd))});
+  return done(out,c);
+}
+function flam(){const c=P(),g=R(.018,.034)*(1+c.ht*.3);
+  return done([{t:0,v:jv(R(.4,.55),c.hd),p:R(-.3,0)*c.hd},{t:g,v:jv(1,c.hd*.5),p:0}],c)}
+function drag(){const c=P(),h=mk(c),g=R(.022,.032)*(1+c.ht*.3);
+  return done([h(0,.45,g),h(g,.5,g),{t:g*2.1,v:jv(1,c.hd*.5),p:0}],c)}
+function flamTap(){ // flam, tap, flam
+  const c=P(),h=mk(c),g=R(.018,.034)*(1+c.ht*.3),u=c.sp,gr=()=>({v:jv(R(.4,.55),c.hd),p:R(-.3,0)*c.hd});
+  return done([{t:0,...gr()},{t:g,v:jv(.95,c.hd*.5),p:0},h(g+u,.6),{t:g+2*u,...gr()},{t:2*g+2*u,v:jv(1,c.hd*.5),p:0}],c);
+}
+function ruff4(){ // three grace notes into the main stroke
+  const c=P(),h=mk(c),g=R(.02,.03)*(1+c.ht*.3);
+  return done([h(0,.38,g),h(g,.43,g),h(g*2,.5,g),{t:g*3.1,v:jv(1,c.hd*.5),p:0}],c);
+}
+function flamAccent(){ // flam on the accent, then two soft taps
+  const c=P(),h=mk(c),g=R(.018,.034)*(1+c.ht*.3),u=c.sp;
+  return done([{t:0,v:jv(R(.4,.55),c.hd),p:R(-.3,0)*c.hd},{t:g,v:jv(1,c.hd*.5),p:0},h(g+u,.5),h(g+2*u,.55)],c);
+}
+function ratamacue(){ // drag + accent, a three-note triplet figure, closing accent
+  const c=P(),h=mk(c),g=R(.022,.032)*(1+c.ht*.3),b=g*2.1;
+  return done([h(0,.42,g),h(g,.48,g),{t:b,v:jv(1,c.hd*.5),p:0},
+    h(b+c.sp,.5),h(b+2*c.sp,.62),h(b+3*c.sp,.5),h(b+4*c.sp,.95)],c);
+}
+
+const GROUPS=[
+ ["Jazz bounces & ghost notes",[
+  ["Ghost bounce","Accent, then soft bounces dribbling away","j1",()=>bounce({gm:1.5,dd:.02,main:.85,v1:c=>c.gl*1.6,vel:.78,count:7})],
+  ["Jazz buzz bounce","Accent into a whisper-quiet buzz","j2",()=>bounce({gm:.5,dd:.06,main:.8,v1:c=>c.gl*1.8,vel:.88,buzz:true})],
+  ["Drag + ghost bounce","Ghost drag, accent, soft bounces","j3",dragGhostBounce],
+  ["Ghost pickup","Two ghost notes leading into an accent","j4",()=>ghostPickup(2,.85)],
+  ["Ghost run-up","Four ghost notes speeding into an accent","j5",()=>ghostPickup(4,.78)],
+  ["Swing comping figure","Accent, ghosts, accent: a jazz comping phrase","j6",swingFigure],
+  ["Ghost press roll","Whisper-quiet buzz that swells and fades","j7",ghostPress],
+  ["Charleston figure","Accent on 1, then the 'and' of 2 (ghost in between)","j8",charleston],
+  ["Spang-a-lang","The jazz ride pattern played on the snare","j9",spangALang],
+  ["Ghost into 2 & 4","Ghost note leaning into the backbeat, twice","j10",ghostInto24],
+  ["Triplet ghost run","Accents on the beat, ghost notes filling the triplets","j11",tripletGhostRun],
+  ["Swung eighths","Long-short eighth notes on all four beats","j12",swungEighths],
+  ["Ghost cascade","Accent, then soft ghost notes tumbling down slowly","j13",()=>bounce({gm:2.2,dd:.08,main:.9,v1:c=>c.gl*1.8,vel:.8,count:6})],
+  ["Ghost build-up","Ghost notes growing into a final accent","j14",()=>bounce({gm:1.6,dd:0,main:.85,v1:c=>c.gl*1.5,vel:.83,count:6,rev:true})],
+ ]],
+ ["Stick bounces",[
+  ["Dropped stick","Classic bounce, gaps shrink as it dies","b1",()=>bounce({gm:2,dd:0,vel:.82})],
+  ["Tight bounce","Fast, buzzy bounce","b2",()=>bounce({gm:1,dd:.05,vel:.84})],
+  ["Lazy bounce","Slow, wide gaps, long decay","b3",()=>bounce({gm:3,dd:.13,vel:.88})],
+  ["Heavy bounce","Eight loud bounces, barely fading","b4",()=>bounce({gm:1.5,dd:.05,vel:.92,count:8})],
+  ["Double bounce","Main hit + two quick, soft bounces","b5",()=>bounce({gm:.7,dd:-.1,vel:.55,count:3})],
+  ["Triple bounce","Main hit + three slow, wide bounces","b6",()=>bounce({gm:2.2,dd:.04,vel:.8,count:4})],
+  ["Bounce into buzz","Bounces melt into a buzz","b7",()=>bounce({gm:2,dd:-.03,vel:.8,buzz:true})],
+  ["Reverse bounce","Builds up and lands on the loudest hit","b8",()=>bounce({gm:2,dd:0,vel:.82,rev:true})],
+  ["Reverse buzz","Buzz that builds into the main hit","b9",()=>bounce({gm:1.5,dd:-.05,vel:.8,buzz:true,rev:true})],
+  ["Single bounce","Main hit + one bounce","b10",()=>bounce({gm:1.5,dd:0,vel:.65,count:2})],
+  ["Quadruple bounce","Main hit + four bounces","b11",()=>bounce({gm:1.3,dd:-.02,vel:.75,count:5})],
+  ["Ricochet","Slow, wide bounces that tighten as they die","b12",()=>bounce({gm:2.5,dd:.08,vel:.88,count:8})],
+ ]],
+ ["Rolls",[
+  ["Even roll","Steady strokes at your spacing","er",()=>evenRoll(.9,.9,.92)],
+  ["Accented roll","Every other stroke softer","ar",()=>evenRoll(.95,.95,.55)],
+  ["Crescendo roll","Starts soft, ends loud","cr",()=>evenRoll(.2,1,.9)],
+  ["Decrescendo roll","Starts loud, fades away","dc",()=>evenRoll(1,.15,.9,.2)],
+  ["Accelerating roll","Notes bunch together over time","ac",()=>warpRoll(2.2,.45,.6,1)],
+  ["Decelerating roll","Notes spread apart over time","de",()=>warpRoll(.45,2.2,1,.5)],
+  ["Buzz (press) roll","Dense, smooth buzz ending on an accent","bz",buzzRoll],
+  ["Swell roll","Soft, loudest in the middle, soft again","sw",swellRoll],
+  ["Open roll","Slow, separated strokes at a relaxed pace","op",()=>evenRoll(.9,.9,.92,1,2.4)],
+  ["Pulse roll","The speed breathes in and out three times","pu",pulseRoll],
+ ]],
+ ["Classic rudiments",[
+  ["Five-stroke roll","Two double strokes + accent","r5",()=>rudiment(2)],
+  ["Seven-stroke roll","Three double strokes + accent","r7",()=>rudiment(3)],
+  ["Nine-stroke roll","Four double strokes + accent","r9",()=>rudiment(4)],
+  ["Triple-stroke roll","Groups of three, ending on an accent","r3",tripleRoll],
+  ["Double strokes","Pairs with an accent every four","ds",double],
+  ["Paradiddle","RLRR LRLL: an accent on the first stroke of every four, the rest soft taps","pd",()=>diddle([1,.38,.46,.4,1,.38,.46,.4],"RLRRLRLL")],
+  ["Paradiddle-diddle","RLRRLL in triplets: one accent, then five soft taps","pdd",()=>diddle([1,.36,.44,.38,.44,.38],"RLRRLL")],
+  ["Eleven-stroke roll","Five double strokes + accent","r11",()=>rudiment(5)],
+ ]],
+ ["Grace notes",[
+  ["Flam","Grace note + main hit","f",flam],
+  ["Drag / ruff","Two grace notes + main","d",drag],
+  ["Ratamacue","Drag, accent, triplet figure, accent","ra",ratamacue],
+  ["Flam tap","Flam, tap, flam","ft",flamTap],
+  ["Four-stroke ruff","Three grace notes into the main stroke","ru",ruff4],
+  ["Flam accent","Flam on the accent, then two soft taps","fa",flamAccent],
+ ]],
+];
+
+// ---------- envelope ----------
+const PRE={flat:[[0,1],[1,1]],out:[[0,1],[1,0]],in:[[0,0],[1,1]],swell:[[0,.2],[.5,1],[1,.2]],duck:[[0,1],[.3,.25],[1,1]]};
+const mkEnv=k=>PRE[k].map(([x,y])=>({x,y}));
+function envAt(env,x){
+  for(let i=1;i<env.length;i++)if(x<=env[i].x){const a=env[i-1],b=env[i],d=b.x-a.x;return d<=0?b.y:a.y+(b.y-a.y)*(x-a.x)/d}
+  return env[env.length-1].y;
+}
+// the envelope covers the sound only: from 0 until the last hit has rung out (ring-out of the original sample, adjusted for each hit's pitch)
+const aud=(h,p)=>Math.floor(h.t*S.sr)<Math.round(p.T*S.sr); // a hit is played if it starts inside the file
+function envEndOf(p){
+  const ends=p.hits.filter(h=>aud(h,p)).map(h=>h.t+p.rl/Math.pow(2,h.p/12));
+  return Math.max(.005,Math.min(p.T,Math.max(...ends)));
+}
+
+// ---------- render ----------
+function renderPat(p){
+  const nc=S.ch.length,L=S.ch[0].length,N=Math.round(p.T*S.sr),out=S.ch.map(()=>new Float32Array(N));
+  const tone=+$("gtone").value/100;
+  p.hits.forEach(h=>{
+    if(!aud(h,p)||h.v<=0)return;
+    const r=Math.pow(2,h.p/12),s0=Math.floor(h.t*S.sr),len0=Math.floor((L-1)/r);
+    // shortened ring-out: stop the hit after p.rl seconds of the original, with a smooth cosine fade over the end
+    let len=len0,fadeN=0;
+    if(p.rl<S.ring-1e-4){len=Math.min(len0,Math.floor(p.rl*S.sr/r));if(len<len0)fadeN=Math.max(8,Math.min(len>>1,Math.floor(.15*S.sr)))}
+    const fs0=len-fadeN;
+    // ghost tone: the softer the hit, the darker (low-pass) and shorter it gets, like a real ghost note
+    const a=tone*Math.max(0,(.5-h.v)/.5),useF=a>.02;
+    const alpha=useF?1-Math.exp(-2*Math.PI*(16000-14500*a)/S.sr):1,dec=useF?Math.exp(-1/((.4-.34*a)*S.sr)):1;
+    for(let c=0;c<nc;c++){
+      const src=S.ch[c],dst=out[c];let y=0,g=1;
+      for(let i=0;i<len;i++){const idx=s0+i;if(idx>=N)break;
+        const x=i*r,j=x|0,f=x-j;let s=src[j]*(1-f)+src[j+1]*f;
+        if(useF){y+=alpha*(s-y);s=y*g;g*=dec}
+        if(fadeN&&i>=fs0)s*=.5*(1+Math.cos(Math.PI*(i-fs0)/fadeN));
+        dst[idx]+=s*h.v}}
+  });
+  // the editor's view and the envelope both run from the start of the new sample to where it drops 50 dB below its own peak
+  {let lastHit=0;p.hits.forEach(h=>{if(aud(h,p)&&h.v>0&&h.t>lastHit)lastHit=h.t});
+   p.envEnd=Math.max(.005,Math.min(p.T,Math.max(measureRing(out,S.sr,-50),lastHit+.01)))}
+  const flat=p.env.length===2&&p.env[0].y===1&&p.env[1].y===1;
+  if(!flat){const eN=Math.max(2,Math.round(p.envEnd*S.sr));
+    out.forEach(a=>{for(let i=0;i<N;i++)a[i]*=envAt(p.env,i<eN?i/(eN-1):1)})}
+  if($("norm").checked){
+    let pk=0;out.forEach(a=>{for(let i=0;i<a.length;i++)pk=Math.max(pk,Math.abs(a[i]))});
+    const g=pk>0?0.95/pk:1;out.forEach(a=>{for(let i=0;i<a.length;i++)a[i]*=g});
+  }
+  const fl=Math.min(Math.floor(N*.2),Math.floor(S.sr*.01));out.forEach(a=>{for(let i=0;i<fl;i++)a[N-1-i]*=i/fl});
+  p.ch=out;
+}
+// ---------- export: resample, mono, quantize, then write WAV / AIFF / FLAC ----------
+const XS=()=>({fmt:$("xfmt").value,bits:+$("xbit").value,sr:(+$("xsr").value)||(S?S.sr:44100),mono:$("xch").value==="mono"});
+// windowed-sinc resampler (Kaiser window, 28 zero-crossings each side): clean 48k -> 44.1k and so on
+function resample(x,from,to){
+  const ratio=to/from,n=x.length,m=Math.round(n*ratio),out=new Float32Array(m);
+  const fc=Math.min(1,ratio)*.985,rad=28/fc,RES=256,KN=Math.ceil(rad*RES),tab=new Float32Array(2*KN+2);
+  const I0=a=>{let s=1,t=1,k=1;while(t>1e-12){t*=Math.pow(a/2/k,2);s+=t;k++}return s},beta=9,den=I0(beta);
+  for(let i=0;i<tab.length;i++){
+    const d=(i-KN)/RES,a=d/rad,w=Math.abs(a)>=1?0:I0(beta*Math.sqrt(1-a*a))/den,px=Math.PI*d*fc;
+    tab[i]=w*fc*(d===0?1:Math.sin(px)/px)}
+  for(let j=0;j<m;j++){
+    const pos=j/ratio,lo=Math.ceil(pos-rad),hi=Math.floor(pos+rad);let acc=0,ws=0;
+    for(let k=lo;k<=hi;k++){
+      const f=(k-pos)*RES+KN,fi=f|0,fr=f-fi,wv=tab[fi]*(1-fr)+tab[fi+1]*fr;
+      ws+=wv;if(k>=0&&k<n)acc+=x[k]*wv}
+    out[j]=ws?acc/ws:0}
+  return out;
+}
+function prepAudio(p,xs){
+  let ch=p.ch;
+  if(xs.mono&&ch.length===2){
+    const m=new Float32Array(ch[0].length);let pk=0;
+    for(let i=0;i<m.length;i++){m[i]=(ch[0][i]+ch[1][i])*.5;pk=Math.max(pk,Math.abs(m[i]))}
+    if($("norm").checked&&pk>0){const g=.95/pk;for(let i=0;i<m.length;i++)m[i]*=g}
+    ch=[m];
+  }
+  if(xs.sr!==S.sr)ch=ch.map(c=>resample(c,S.sr,xs.sr));
+  return ch;
+}
+function quant(ch,bits){ // 16-bit gets a touch of TPDF dither (never on exact silence); 24-bit is rounded as is
+  const mx=bits===16?32767:8388607;
+  return ch.map(c=>{const o=new Int32Array(c.length);
+    for(let i=0;i<c.length;i++){let x=c[i]*mx;if(bits===16&&c[i]!==0)x+=Math.random()-Math.random();
+      x=Math.round(x);o[i]=x>mx?mx:x<-mx-1?-mx-1:x}
+    return o});
+}
+function wavBytes(q,sr,bits){
+  const nc=q.length,N=q[0].length,B=bits/8,dl=N*nc*B,pad=dl&1,buf=new ArrayBuffer(44+dl+pad),v=new DataView(buf);
+  const w=(o,s)=>[...s].forEach((c,i)=>v.setUint8(o+i,c.charCodeAt(0)));
+  w(0,"RIFF");v.setUint32(4,36+dl+pad,true);w(8,"WAVEfmt ");v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,nc,true);
+  v.setUint32(24,sr,true);v.setUint32(28,sr*nc*B,true);v.setUint16(32,nc*B,true);v.setUint16(34,bits,true);w(36,"data");v.setUint32(40,dl,true);
+  let o=44;
+  for(let i=0;i<N;i++)for(let c=0;c<nc;c++){const x=q[c][i];
+    if(B===2){v.setInt16(o,x,true);o+=2}else{v.setUint8(o,x&255);v.setUint8(o+1,(x>>8)&255);v.setUint8(o+2,(x>>16)&255);o+=3}}
+  return new Uint8Array(buf);
+}
+function aiffBytes(q,sr,bits){
+  const nc=q.length,N=q[0].length,B=bits/8,dl=N*nc*B,pad=dl&1,ss=8+dl,buf=new ArrayBuffer(12+26+8+ss+pad),v=new DataView(buf);
+  const w=(o,s)=>[...s].forEach((c,i)=>v.setUint8(o+i,c.charCodeAt(0)));
+  w(0,"FORM");v.setUint32(4,buf.byteLength-8);w(8,"AIFF");
+  w(12,"COMM");v.setUint32(16,18);v.setInt16(20,nc);v.setUint32(22,N);v.setInt16(26,bits);
+  const e=Math.floor(Math.log2(sr));v.setUint16(28,16383+e);v.setUint32(30,Math.round(sr*Math.pow(2,31-e)));v.setUint32(34,0); // 80-bit extended float
+  w(38,"SSND");v.setUint32(42,ss);v.setUint32(46,0);v.setUint32(50,0);
+  let o=54;
+  for(let i=0;i<N;i++)for(let c=0;c<nc;c++){const x=q[c][i];
+    if(B===2){v.setInt16(o,x);o+=2}else{v.setUint8(o,(x>>16)&255);v.setUint8(o+1,(x>>8)&255);v.setUint8(o+2,x&255);o+=3}}
+  return new Uint8Array(buf);
+}
+// ----- FLAC (lossless): fixed predictors + Rice coding, checksums and MD5 like the reference encoder -----
+function md5(u8){
+  const K=new Uint32Array(64),Sh=[7,12,17,22,5,9,14,20,4,11,16,23,6,10,15,21];
+  for(let i=0;i<64;i++)K[i]=Math.floor(Math.abs(Math.sin(i+1))*4294967296)>>>0;
+  const n=u8.length,tot=(((n+8)>>>6)+1)<<6,m=new Uint8Array(tot);m.set(u8);m[n]=0x80;
+  const dv=new DataView(m.buffer);dv.setUint32(tot-8,(n<<3)>>>0,true);dv.setUint32(tot-4,Math.floor(n/536870912),true);
+  let a0=0x67452301,b0=0xefcdab89,c0=0x98badcfe,d0=0x10325476;
+  for(let off=0;off<tot;off+=64){
+    let A=a0,B=b0,C=c0,D=d0;
+    for(let i=0;i<64;i++){
+      let F,g;
+      if(i<16){F=(B&C)|(~B&D);g=i}else if(i<32){F=(D&B)|(~D&C);g=(5*i+1)&15}
+      else if(i<48){F=B^C^D;g=(3*i+5)&15}else{F=C^(B|~D);g=(7*i)&15}
+      F=(F+A+K[i]+dv.getUint32(off+g*4,true))>>>0;A=D;D=C;C=B;
+      const s=Sh[(i>>4)*4+(i&3)];B=(B+(((F<<s)|(F>>>(32-s)))>>>0))>>>0}
+    a0=(a0+A)>>>0;b0=(b0+B)>>>0;c0=(c0+C)>>>0;d0=(d0+D)>>>0}
+  const o=new Uint8Array(16),ov=new DataView(o.buffer);ov.setUint32(0,a0,true);ov.setUint32(4,b0,true);ov.setUint32(8,c0,true);ov.setUint32(12,d0,true);return o;
+}
+class BitW{
+  constructor(){this.b=[];this.acc=0;this.n=0}
+  put(v,n){
+    if(n>16){this.put(Math.floor(v/65536),n-16);this.put(v%65536,16);return}
+    this.acc=(this.acc<<n)|(v&((1<<n)-1));this.n+=n;
+    while(this.n>=8){this.b.push((this.acc>>>(this.n-8))&255);this.n-=8}
+    this.acc&=(1<<this.n)-1}
+  unary(q){while(q>=16){this.put(0,16);q-=16}this.put(1,q+1)}
+  align(){if(this.n)this.put(0,8-this.n)}
+}
+const CRC8T=(()=>{const t=new Uint8Array(256);for(let i=0;i<256;i++){let c=i;for(let k=0;k<8;k++)c=c&128?((c<<1)^7)&255:(c<<1)&255;t[i]=c}return t})();
+const CRC16T=(()=>{const t=new Uint16Array(256);for(let i=0;i<256;i++){let c=i<<8;for(let k=0;k<8;k++)c=c&0x8000?((c<<1)^0x8005)&0xFFFF:(c<<1)&0xFFFF;t[i]=c}return t})();
+const crc8=a=>{let c=0;for(const x of a)c=CRC8T[c^x];return c};
+const crc16=a=>{let c=0;for(const x of a)c=((c<<8)&0xFFFF)^CRC16T[(c>>8)^x];return c};
+function fixedRes(x,ord){
+  const n=x.length,r=new Int32Array(n);
+  for(let i=ord;i<n;i++){let p;
+    switch(ord){case 0:p=0;break;case 1:p=x[i-1];break;case 2:p=2*x[i-1]-x[i-2];break;
+      case 3:p=3*x[i-1]-3*x[i-2]+x[i-3];break;default:p=4*x[i-1]-6*x[i-2]+4*x[i-3]-x[i-4]}
+    r[i]=x[i]-p}
+  return r;
+}
+const zz=r=>r>=0?2*r:-2*r-1;
+function riceK(sum,n){ // best Rice parameter for a partition (n samples, sum of zig-zag values)
+  const m=sum/n,k0=m>1?Math.floor(Math.log2(m)):0;let bk=0,bb=Infinity;
+  for(let k=Math.max(0,k0-1);k<=Math.min(30,k0+1);k++){const b=n*(k+1)+Math.floor(sum/Math.pow(2,k));if(b<bb){bb=b;bk=k}}
+  return{k:bk,bits:bb+5};
+}
+function planRice(res,ord,bs){ // pick the partition order with the fewest estimated bits
+  let best=null;
+  for(let po=0;po<=8&&bs%(1<<po)===0&&(bs>>po)>ord;po++){
+    const np=1<<po,ks=[];let bits=6;
+    for(let p=0;p<np;p++){
+      const s=p*(bs>>po)+(p===0?ord:0),e=(p+1)*(bs>>po);let sum=0;
+      for(let i=s;i<e;i++)sum+=zz(res[i]);
+      const r=riceK(sum,e-s);ks.push(r.k);bits+=r.bits}
+    if(!best||bits<best.bits)best={po,ks,bits};
+  }
+  return best;
+}
+function flacSub(w,x,bits){
+  const bs=x.length,mask=Math.pow(2,bits)-1;let same=true;
+  for(let i=1;i<bs;i++)if(x[i]!==x[0]){same=false;break}
+  if(same){w.put(0,8);w.put(x[0]&mask,bits);return}   // constant (digital silence costs almost nothing)
+  let best={type:1,bits:8+bs*bits};
+  for(let ord=0;ord<=4&&ord<bs;ord++){
+    const res=fixedRes(x,ord),pl=planRice(res,ord,bs);if(!pl)continue;
+    const tb=8+ord*bits+pl.bits;if(tb<best.bits)best={type:8+ord,bits:tb,ord,res,pl}}
+  if(best.type===1){w.put(0,1);w.put(1,6);w.put(0,1);for(let i=0;i<bs;i++)w.put(x[i]&mask,bits);return}
+  const {ord,res,pl}=best;
+  w.put(0,1);w.put(best.type,6);w.put(0,1);
+  for(let i=0;i<ord;i++)w.put(x[i]&mask,bits);
+  w.put(1,2);w.put(pl.po,4);
+  const np=1<<pl.po;
+  for(let p=0;p<np;p++){
+    const k=pl.ks[p],s=p*(bs>>pl.po)+(p===0?ord:0),e=(p+1)*(bs>>pl.po),m=Math.pow(2,k);
+    w.put(k,5);
+    for(let i=s;i<e;i++){const z=zz(res[i]),q=Math.floor(z/m);w.unary(q);if(k)w.put(z-q*m,k)}}
+}
+function flacBytes(q,sr,bits){
+  const nc=q.length,N=q[0].length,BS=4096,B=bits/8;
+  const raw=new Uint8Array(N*nc*B);let o=0;
+  for(let i=0;i<N;i++)for(let c=0;c<nc;c++){const x=q[c][i];raw[o++]=x&255;raw[o++]=(x>>8)&255;if(B===3)raw[o++]=(x>>16)&255}
+  const sum=md5(raw),frames=[];let fn=0,minF=Infinity,maxF=0;
+  const SRC={44100:9,48000:10,96000:11,88200:1,32000:8,22050:6,24000:7,16000:5,8000:4,176400:2,192000:3};
+  for(let s=0;s<N;s+=BS,fn++){
+    const bs=Math.min(BS,N-s),w=new BitW();
+    w.put(0x3FFE,14);w.put(0,1);w.put(0,1);w.put(bs===BS?12:7,4);w.put(SRC[sr]||0,4);w.put(nc-1,4);w.put(bits===16?4:6,3);w.put(0,1);
+    if(fn<128)w.put(fn,8);else if(fn<2048){w.put(0xC0|(fn>>6),8);w.put(0x80|(fn&63),8)}
+    else{w.put(0xE0|(fn>>12),8);w.put(0x80|((fn>>6)&63),8);w.put(0x80|(fn&63),8)}
+    if(bs!==BS)w.put(bs-1,16);
+    w.put(crc8(w.b),8);
+    for(let c=0;c<nc;c++)flacSub(w,q[c].subarray(s,s+bs),bits);
+    w.align();w.put(crc16(w.b),16);
+    frames.push(Uint8Array.from(w.b));minF=Math.min(minF,w.b.length);maxF=Math.max(maxF,w.b.length)}
+  const h=new BitW(),mb=Math.min(BS,N);
+  h.put(mb,16);h.put(mb,16);h.put(minF,24);h.put(maxF,24);h.put(sr,20);h.put(nc-1,3);h.put(bits-1,5);h.put(N,36);
+  const head=[0x66,0x4C,0x61,0x43,0x80,0,0,34,...h.b,...sum];
+  const tot=head.length+frames.reduce((a,f)=>a+f.length,0),out=new Uint8Array(tot);
+  out.set(head,0);let p=head.length;for(const f of frames){out.set(f,p);p+=f.length}
+  return out;
+}
+const EXT={wav:"wav",aiff:"aif",flac:"flac"},MIME={wav:"audio/wav",aiff:"audio/aiff",flac:"audio/flac"};
+function encodeFile(p){
+  const xs=XS(),q=quant(prepAudio(p,xs),xs.bits);
+  const bytes=xs.fmt==="flac"?flacBytes(q,xs.sr,xs.bits):xs.fmt==="aiff"?aiffBytes(q,xs.sr,xs.bits):wavBytes(q,xs.sr,xs.bits);
+  return{bytes,ext:EXT[xs.fmt],mime:MIME[xs.fmt]};
+}
+// export settings UI
+const FMTN={wav:"WAV",aiff:"AIFF",flac:"FLAC"};
+function dlLabel(){const x=XS(),mono=S&&(x.mono||S.ch.length<2);return `⬇ ${FMTN[x.fmt]} ${x.bits}-bit${mono?" mono":""}`}
+function dlTitle(){const x=XS(),mono=S&&(x.mono||S.ch.length<2);
+  return `Downloads this sample as ${FMTN[x.fmt]}, ${x.bits}-bit, ${x.sr} Hz, ${mono?"mono":"stereo"} (your Export format).`+(DL?" In this viewer it arrives inside a ZIP file.":"")}
+function applyDl(b){if(b){b.textContent=dlLabel();b.title=dlTitle()}}
+function xinfo(){
+  if(!S)return;
+  const x=XS(),nch=x.mono?1:S.ch.length,T=TT(),bytes=Math.round(T*x.sr)*nch*x.bits/8+44,kb=Math.round(bytes/1000);
+  let pre="";
+  if(x.fmt==="wav"&&x.bits===16&&$("xsr").value==="44100"&&x.mono)pre="Safe for older gear · ";
+  else if(x.fmt==="wav"&&x.bits===24&&$("xsr").value==="0"&&!x.mono)pre="Modern · ";
+  $("xinfo").textContent=`${pre}Each file: ${FMTN[x.fmt]}, ${x.bits}-bit, ${x.sr} Hz, ${nch===1?"mono":"stereo"}, ${fmtT(Math.round(T*1000))} ≈ ${kb} kB`+(x.fmt==="flac"?" before compression (FLAC is usually 30–60% smaller)":"");
+}
+function onX(){
+  xinfo();pats.forEach(p=>applyDl(p.dlBtn));applyDl($("eddl"));
+}
+function setupExport(){
+  $("xsr").options[0].textContent=`Original (${S.sr} Hz)`;
+  if(S.ch.length<2)$("xch").value="keep";
+  xinfo();
+}
+["xfmt","xbit","xsr","xch"].forEach(id=>$(id).onchange=onX);
+const setX=(f,b,s,c)=>{$("xfmt").value=f;$("xbit").value=b;$("xsr").value=s;$("xch").value=c;onX()};
+$("preSafe").onclick=()=>setX("wav",16,44100,"mono");
+$("preMod").onclick=()=>setX("wav",24,0,"keep");
+
+// minimal ZIP writer (stored, no compression) so audio can leave the viewer, which only allows certain file types
+const CRCT=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc32(u){let c=0xFFFFFFFF;for(let i=0;i<u.length;i++)c=CRCT[(c^u[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0}
+function makeZip(files){
+  const enc=new TextEncoder(),parts=[],cd=[];let off=0,cdSize=0;
+  files.forEach(f=>{
+    const nm=enc.encode(f.name),crc=crc32(f.bytes),sz=f.bytes.length;
+    const h=new DataView(new ArrayBuffer(30));
+    h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint16(12,0x21,true);
+    h.setUint32(14,crc,true);h.setUint32(18,sz,true);h.setUint32(22,sz,true);h.setUint16(26,nm.length,true);
+    parts.push(h.buffer,nm,f.bytes);
+    const c=new DataView(new ArrayBuffer(46));
+    c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x0800,true);c.setUint16(14,0x21,true);
+    c.setUint32(16,crc,true);c.setUint32(20,sz,true);c.setUint32(24,sz,true);c.setUint16(28,nm.length,true);c.setUint32(42,off,true);
+    cd.push(c.buffer,nm);cdSize+=46+nm.length;off+=30+nm.length+sz;
+  });
+  const e=new DataView(new ArrayBuffer(22));
+  e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cdSize,true);e.setUint32(16,off,true);
+  return new Blob([...parts,...cd,e.buffer],{type:"application/zip"});
+}
+// downloads: inside the Claude viewer a page may only save through the `downloads` capability (WAV isn't allowed, ZIP is)
+let DL=null;
+(async()=>{try{if(window.claude&&claude.use)DL=await claude.use("downloads")}catch(e){DL=null}})();
+const fileBase=p=>`${name}_${p.code}_${p.n}`;
+function say(t){$("msg").textContent=t}
+async function deliver(blob,filename){
+  if(DL){
+    try{await DL.save({filename,data:blob});say("")}
+    catch(e){say(e&&e.code==="declined"?"Download cancelled.":"Couldn't save the file here ("+((e&&e.code)||"error")+"). Try opening the saved HTML file on your computer instead.")}
+  }else{
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=filename;a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  }
+}
+function download(p){
+  const f=encodeFile(p),fn=fileBase(p)+"."+f.ext;
+  if(DL)deliver(makeZip([{name:fn,bytes:f.bytes}]),fileBase(p)+".zip");
+  else deliver(new Blob([f.bytes],{type:f.mime}),fn);
+}
+$("zipall").onclick=async()=>{
+  if(!S||!pats.length)return;
+  say(`Preparing ${pats.length} files…`);await new Promise(r=>setTimeout(r,30));
+  try{
+    const files=pats.map(p=>{const f=encodeFile(p);return{name:fileBase(p)+"."+f.ext,bytes:f.bytes}});
+    say("");deliver(makeZip(files),`${name}_rolls_${count}.zip`);
+  }catch(e){say("Couldn't build the files: "+(e&&e.message||e))}
+};
+function play(ch){
+  if(curSrc){try{curSrc.stop()}catch(e){}}
+  const a=ctx();a.resume();const b=a.createBuffer(ch.length,ch[0].length,S.sr);
+  ch.forEach((d,i)=>b.copyToChannel(d,i));
+  const s=a.createBufferSource();s.buffer=b;s.connect(a.destination);s.start();curSrc=s;
+}
+
+// ---------- cards ----------
+function updateMetas(){pats.forEach(p=>{
+  p.metaEl.textContent=`${(p.ch[0].length/S.sr).toFixed(2)} s · ${p.hits.filter(h=>aud(h,p)).length} hits`+(p.cut?` · ${p.cut} didn't fit`:"")})}
+const openG={};try{Object.assign(openG,JSON.parse(localStorage.getItem("srgOpen")||"{}"))}catch(e){}
+const saveOpen=()=>{try{localStorage.setItem("srgOpen",JSON.stringify(openG))}catch(e){}};
+function isEdited(p){ // has the player changed any hit volume or the envelope?
+  const flat=p.env.length===2&&p.env[0].x===0&&p.env[1].x===1&&p.env[0].y===1&&p.env[1].y===1;
+  return !flat||p.hits.some((h,i)=>h.v!==p.orig[i].v||h.t!==p.orig[i].t);
+}
+function markEdited(p){p.edited=isEdited(p);if(p.card)p.card.classList.toggle("edited",p.edited);if(p.edEl)p.edEl.hidden=!p.edited}
+function buildCard(p,i){
+  const card=document.createElement("div");card.className="card";card.title=p.desc;
+  card.innerHTML=`<div class="ct"><h3></h3><span class="edot" hidden title="You edited this sample. Re-roll keeps it; use Re-roll all to discard your edits.">● edited</span></div><div class="r"><button class="p s" title="Plays this sample.">▶ Play</button><button class="s"></button><button class="s" title="Opens the editor: set each hit's volume and draw the overall envelope.">✎ Edit</button></div><div class="meta"></div>`;
+  card.querySelector("h3").textContent=p.title;
+  const [pb,db,eb]=card.querySelectorAll("button");
+  pb.onclick=()=>play(p.ch);db.onclick=()=>download(p);eb.onclick=()=>openEd(i);
+  p.card=card;p.dlBtn=db;p.metaEl=card.querySelector(".meta");p.edEl=card.querySelector(".edot");applyDl(db);
+  return card;
+}
+function generate(reset){
+  const keep={};if(!reset)pats.forEach(p=>{if(p.edited)keep[p.code]=p});   // edited samples survive a re-roll
+  const grid=$("grid");grid.innerHTML="";count++;pats=[];closeEd();let idx=0,kept=0;
+  GROUPS.forEach(([gname,list],gi)=>{
+    const sec=document.createElement("section"),hd=document.createElement("button"),box=document.createElement("div");
+    hd.className="gh";box.className="gcards";
+    const setOpen=o=>{openG[gname]=o;box.hidden=!o;hd.textContent=`${o?"▾":"▸"} ${gname} (${list.length})`};
+    hd.title="Click to open or close this category.";
+    hd.onclick=()=>{setOpen(!!box.hidden);saveOpen()};
+    setOpen(gname in openG?!!openG[gname]:gi===0);
+    sec.appendChild(hd);sec.appendChild(box);grid.appendChild(sec);
+    list.forEach(([title,desc,code,fn])=>{
+      const i=idx++;let p=keep[code];
+      if(p)kept++;
+      else{const hits=fn();p={title,desc,code,n:count,hits,cut:hits.cut||0,env:mkEnv("flat"),T:TT(),rl:ringEff()};
+        p.orig=p.hits.map(h=>({...h}));p.envEnd=envEndOf(p);renderPat(p)}
+      pats.push(p);box.appendChild(buildCard(p,i));markEdited(p);
+    });
+  });
+  const lost=pats.filter(p=>p.cut).length;
+  cutNote=lost?`${lost} pattern${lost>1?"s":""} lost hits that didn't fit (marked on the cards): lengthen Total time, shorten the gap, or reduce the extra silence`:"";
+  say(kept?`${kept} edited sample${kept>1?"s":""} kept. Use “Re-roll all” to discard your edits.`:"");
+  updateMetas();drawTimeline();
+}
+
+// ---------- editor ----------
+const c1=$("cv1"),c2=$("cv2");
+const PADX=18,PADT=14,H1=150,H2=130,STRIP=48,MINPX=14,MAXW=5000;
+let Lay={W:0,x0:PADX,x1:PADX};
+function cssv(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()}
+const clamp01=v=>Math.max(0,Math.min(1,v));
+const visHits=p=>p.hits.filter(h=>aud(h,p));           // exactly the hits the renderer plays
+const X=(p,t)=>Lay.x0+(t/p.envEnd)*(Lay.x1-Lay.x0);     // time -> pixel on the hit canvas (the audible part: first hit until the last ring-out ends)
+const Xn=x=>Lay.x0+x*(Lay.x1-Lay.x0);                   // 0..1 -> pixel on the envelope canvas (0..1 = start .. end of the last ring-out)
+const fmtMs=s=>{const m=s*1000;return m>=100?String(Math.round(m)):m>=10?m.toFixed(0):m.toFixed(1)};
+
+let zoomV=1;                                          // 1 = the whole sample fits the view (default); up to 10 = zoomed in, scroll sideways
+function layout(){
+  const cw=Math.max(300,$("edscroll").clientWidth);
+  const W=zoomV<=1.001?cw:Math.min(MAXW,Math.round(cw*zoomV));
+  Lay={W,x0:PADX,x1:W-PADX};
+  $("edinner").style.width=W+"px";
+}
+function prep(c,H){
+  const W=Lay.W,d=Math.min(window.devicePixelRatio||1,30000/W);
+  c.style.width=W+"px";c.style.height=H+"px";c.width=Math.round(W*d);c.height=Math.round(H*d);
+  const x=c.getContext("2d");x.setTransform(d,0,0,d,0,0);return x;
+}
+function wave(x,p,plotH,tEnd){ // waveform of the first tEnd seconds, stretched across the plot
+  const d=p.ch[0],n=Math.min(d.length,Math.max(2,Math.round(tEnd*S.sr))),w=Lay.x1-Lay.x0,cy=PADT+plotH/2;
+  x.strokeStyle=cssv("--line");x.lineWidth=1;x.beginPath();
+  for(let i=0;i<w;i++){
+    const s=Math.floor(i/w*n),e=Math.min(n,Math.floor((i+1)/w*n)+1),st=Math.max(1,(e-s)>>6);let mn=0,mx=0;
+    for(let j=s;j<e;j+=st){const v=d[j];if(v<mn)mn=v;if(v>mx)mx=v}
+    x.moveTo(Lay.x0+i+.5,cy-mx*plotH/2);x.lineTo(Lay.x0+i+.5,cy-mn*plotH/2);
+  }
+  x.stroke();
+}
+function shade(x,p,top,h){ // the part of the file after the last ring-out
+  const xe=X(p,p.envEnd);if(xe>=Lay.x1-2)return;
+  x.save();x.fillStyle=cssv("--ink");x.globalAlpha=.06;x.fillRect(xe,top,Lay.x1-xe,h);
+  if(Lay.x1-xe>110){x.globalAlpha=1;x.fillStyle=cssv("--mut");x.font="11px system-ui,-apple-system,sans-serif";x.textAlign="right";x.fillText("after the last ring-out",Lay.x1-6,top+14)}
+  x.restore();
+}
+function bracketRow(x,pts,y,label){ // a thin ruler under the plot: a bracket between neighbours with the gap in ms
+  x.save();x.font="11px system-ui,-apple-system,sans-serif";x.textAlign="center";x.fillStyle=cssv("--mut");x.strokeStyle=cssv("--mut");x.lineWidth=1;
+  const end=[-1e9,-1e9];                                  // two text rows, so close neighbours never overprint
+  for(let i=0;i<pts.length-1;i++){
+    const a=pts[i],b=pts[i+1];
+    x.globalAlpha=.45;x.beginPath();x.moveTo(a+.5,y-3);x.lineTo(a+.5,y+3);x.moveTo(a,y);x.lineTo(b,y);x.moveTo(b+.5,y-3);x.lineTo(b+.5,y+3);x.stroke();
+    x.globalAlpha=1;const t=label(i),tw=x.measureText(t).width,cx=(a+b)/2;
+    for(let r=0;r<2;r++)if(cx-tw/2>=end[r]+3){x.fillText(t,cx,y+15+r*12);end[r]=cx+tw/2;break}
+  }
+  x.restore();
+}
+function drawEd(){
+  const p=pats[edIdx];if(!p)return;
+  const hs=visHits(p).sort((a,b)=>a.t-b.t),acc=cssv("--acc");
+  // hit volumes: one bar per entry of the generator's hit list
+  let x=prep(c1,PADT+H1+STRIP);wave(x,p,H1,p.envEnd);
+  const y1=PADT+H1;
+  x.strokeStyle=cssv("--line");x.lineWidth=1;x.beginPath();x.moveTo(Lay.x0,y1+.5);x.lineTo(Lay.x1,y1+.5);x.stroke();
+  x.strokeStyle=acc;x.fillStyle=acc;x.lineWidth=3;
+  hs.forEach(k=>{const px=X(p,k.t),py=PADT+(1-k.v)*H1;
+    x.beginPath();x.moveTo(px,y1);x.lineTo(px,py);x.stroke();x.beginPath();x.arc(px,py,4.5,0,7);x.fill()});
+  bracketRow(x,hs.map(k=>X(p,k.t)),y1+14,i=>fmtMs(hs[i+1].t-hs[i].t));
+  const wide=Lay.W>$("edscroll").clientWidth+2?"  ·  ← scroll sideways to see everything →":"";
+  $("d1").textContent=`Showing the first ${Math.round(p.envEnd*1000)} ms of ${Math.round(p.T*1000)} ms${p.envEnd<p.T-.001?" (the rest is silence)":""} · ${hs.length} hits${p.cut?` · ${p.cut} didn't fit`:""} · numbers under the bars = time between hits, in ms`+wide;
+  // envelope: first envEnd seconds only (until the last hit has rung out)
+  x=prep(c2,PADT+H2+STRIP);wave(x,p,H2,p.envEnd);
+  const y2=PADT+H2,ey=e=>PADT+(1-e.y)*H2,last=p.env[p.env.length-1];
+  x.strokeStyle=cssv("--ink");x.lineWidth=2;x.beginPath();
+  p.env.forEach((e,i)=>{const px=Xn(e.x),py=ey(e);i?x.lineTo(px,py):x.moveTo(px,py)});x.stroke();
+  x.fillStyle=acc;p.env.forEach(e=>{x.beginPath();x.arc(Xn(e.x),ey(e),6,0,7);x.fill()});
+  bracketRow(x,p.env.map(e=>Xn(e.x)),y2+14,i=>fmtMs((p.env[i+1].x-p.env[i].x)*p.envEnd));
+  $("d2").textContent=`Envelope covers the first ${Math.round(p.envEnd*1000)} ms of ${Math.round(p.T*1000)} ms (until the sound drops 50 dB below its peak) · numbers under the line = time between points, in ms`+wide;
+}
+function openEd(i){
+  edIdx=i;pats.forEach((p,k)=>p.card.classList.toggle("sel",k===i));
+  $("ed").hidden=false;applyDl($("eddl"));$("edt").textContent=pats[i].title;
+  zoomV=1;$("zoom").value=1;$("zv").textContent="1×";
+  layout();drawEd();$("edscroll").scrollLeft=0;$("ed").scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function closeEd(){edIdx=-1;$("ed").hidden=true;pats.forEach(p=>p.card&&p.card.classList.remove("sel"))}
+function commit(){const p=pats[edIdx];renderPat(p);markEdited(p);updateMetas();drawEd()}
+$("edclose").onclick=closeEd;
+function setZoom(z){ // the left edge of the view stays on the same spot of the waveform while you zoom
+  const sc=$("edscroll"),open=edIdx>=0&&Lay.W>0,f=open?(sc.scrollLeft-Lay.x0)/(Lay.x1-Lay.x0):0;   // where the left edge sits on the waveform (0 = start, 1 = end)
+  zoomV=z;$("zoom").value=z;$("zv").textContent=(Math.round(z*100)/100)+"×";
+  if(open){layout();drawEd();sc.scrollLeft=Math.max(0,Lay.x0+f*(Lay.x1-Lay.x0))}
+}
+$("zoom").addEventListener("input",()=>setZoom(+$("zoom").value));
+$("zfit").onclick=()=>setZoom(1);
+$("edplay").onclick=()=>edIdx>=0&&play(pats[edIdx].ch);
+$("eddl").onclick=()=>edIdx>=0&&download(pats[edIdx]);
+$("edreset").onclick=()=>{if(edIdx<0)return;const p=pats[edIdx];p.hits=p.orig.map(h=>({...h}));commit()};
+const PRET={flat:"Flat: the envelope does nothing.",out:"Fade out: the sample gets quieter toward the end.",in:"Fade in: the sample starts quiet and builds up.",swell:"Swell: quiet, then loudest in the middle, then quiet again.",duck:"Duck & return: dips down early, then comes back up."};
+document.querySelectorAll("[data-pre]").forEach(b=>{b.title=PRET[b.dataset.pre]||""});
+document.querySelectorAll("[data-pre]").forEach(b=>b.onclick=()=>{if(edIdx<0)return;pats[edIdx].env=mkEnv(b.dataset.pre);commit()});
+window.addEventListener("resize",()=>{if(edIdx>=0){layout();drawEd()}});
+
+// hit volumes: pick the nearest bar to the pointer, set its height
+let paint=false;
+function setHit(e){
+  const p=pats[edIdx],r=c1.getBoundingClientRect(),cx=e.clientX-r.left,cy=e.clientY-r.top;
+  const v=clamp01(1-(cy-PADT)/H1);
+  let best=null,bd=Infinity;
+  visHits(p).forEach(k=>{const d=Math.abs(X(p,k.t)-cx);if(d<bd){bd=d;best=k}});
+  if(best){best.v=v;drawEd()}
+}
+c1.onpointerdown=e=>{if(edIdx<0||e.button!==0)return;paint=true;c1.setPointerCapture(e.pointerId);setHit(e)};
+c1.onpointermove=e=>{if(paint)setHit(e)};
+c1.onpointerup=c1.onpointercancel=()=>{if(paint){paint=false;commit()}};
+
+// envelope points
+let dragPt=-1;
+function envPos(e){
+  const r=c2.getBoundingClientRect(),cx=e.clientX-r.left,cy=e.clientY-r.top;
+  return{cx,cy,x:clamp01((cx-Lay.x0)/(Lay.x1-Lay.x0)),y:clamp01(1-(cy-PADT)/H2)};
+}
+function nearPt(e){
+  const p=pats[edIdx],q=envPos(e);let b=-1,bd=14;
+  p.env.forEach((pt,i)=>{const d=Math.hypot(Xn(pt.x)-q.cx,PADT+(1-pt.y)*H2-q.cy);if(d<bd){bd=d;b=i}});
+  return b;
+}
+c2.onpointerdown=e=>{
+  if(edIdx<0||e.button!==0||e.ctrlKey)return;
+  const p=pats[edIdx],q=envPos(e);c2.setPointerCapture(e.pointerId);
+  let i=nearPt(e);
+  if(i<0){
+    if(q.cy>PADT+H2+8)return;                           // clicks on the ruler don't add points
+    let k=p.env.findIndex(pt=>pt.x>q.x);if(k<0)k=p.env.length-1;
+    p.env.splice(k,0,{x:q.x,y:q.y});i=k;
+  }
+  dragPt=i;drawEd();
+};
+c2.onpointermove=e=>{
+  if(dragPt<0)return;
+  const p=pats[edIdx],q=envPos(e),n=p.env.length-1,pt=p.env[dragPt];
+  pt.y=q.y;if(dragPt>0&&dragPt<n)pt.x=Math.max(p.env[dragPt-1].x,Math.min(p.env[dragPt+1].x,q.x));
+  drawEd();
+};
+c2.onpointerup=c2.onpointercancel=()=>{if(dragPt>=0){dragPt=-1;commit()}};
+function delPt(e){
+  if(edIdx<0)return;const p=pats[edIdx],i=nearPt(e);
+  if(i>0&&i<p.env.length-1){p.env.splice(i,1);commit()}  // the first and last points stay: they hold the start and end of the envelope
+}
+c2.oncontextmenu=e=>{e.preventDefault();dragPt=-1;delPt(e)};   // right-click (or long-press on touch) deletes the dot
+c2.ondblclick=delPt;
+// Auto re-roll: when the switch is on, letting go of a slider rebuilds the samples (edited ones are kept)
+["len","sp","humt","humd","ringlen","tail","bgap","bdec","ghl","ringon"].forEach(id=>$(id).addEventListener("change",()=>{if(S&&$("auto").checked)generate(false)}));
+refresh();
+</script></body></html>

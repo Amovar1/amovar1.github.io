@@ -1,0 +1,66 @@
+Snare Roller
+Copyright (c) 2026 amovar1 - original at https://amovar1.github.io/snare/
+
+"Commons Clause" License Condition v1.0
+
+The Software is provided to you by the Licensor under the License, as defined
+below, subject to the following condition.
+
+Without limiting other conditions in the License, the grant of rights under
+the License will not include, and the License does not grant to you, the right
+to Sell the Software.
+
+For purposes of the foregoing, "Sell" means practicing any or all of the rights
+granted to you under the License to provide to third parties, for a fee or
+other consideration (including without limitation fees for hosting or
+consulting/support services related to the Software), a product or service
+whose value derives, entirely or substantially, from the functionality of the
+Software. Any license notice or attribution required by the License must also
+include this Commons Clause License Condition notice.
+
+Software: Snare Roller
+License: MIT
+Licensor: amovar1
+
+-----------------------------------------------------------------------------
+
+NOTES FROM THE AUTHOR (these explain my intent; they do not take away any
+rights granted above)
+
+1. The audio you export with this tool is yours, with no conditions. Use it,
+   sell it, release it commercially, give no credit. This license covers the
+   tool only, never the samples it makes.
+2. You may use the tool however you like, for any purpose, including paid work.
+3. You may download it, host it on your own website (ads on a free copy are
+   fine), and modify it.
+4. Using this tool inside a larger product that adds real value of its own is
+   welcome.
+5. What you may not do: sell the tool itself or charge for access to it, or
+   present it as your own work.
+6. Every copy, hosted copy or modified copy must keep the copyright line at the
+   top of this file and a visible link to the original at the address above.
+   If you modify it, say so.
+
+-----------------------------------------------------------------------------
+
+MIT License
+
+Copyright (c) 2026 amovar1 - original at https://amovar1.github.io/snare/
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
