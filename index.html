@@ -85,6 +85,7 @@ select{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8
 .zl b{display:inline-block;min-width:3.4em}
 .dur{min-height:2.7em}
 .zl{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--mut)}.zl input{width:110px}
+.bpmbox{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px 18px;align-items:end;padding:8px 10px;border:1px dashed var(--line,#8886);border-radius:8px}.bpmbox label{min-width:160px}.bpmbox select{width:100%}input:disabled,select:disabled{opacity:.4}
 </style></head><body><main>
 <h1>Snare Roller</h1>
 <p class="sub">Drop a one-shot snare (WAV, AIFF or FLAC). Get jazz bounces, ghost notes, rolls and rudiments as new WAV, AIFF or FLAC files for your sampler.</p>
@@ -103,6 +104,9 @@ select{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8
   <div class="cg"><div class="cgt">Length and feel</div><div class="row">
     <label title="The exact length of every file you export"><span>Total time: <b id="lv">2.00 s</b></span><input id="len" type="range" min="50" max="5000" step="10" value="2000"></label>
     <label title="Time between strokes in rolls, rudiments and ghost-note figures"><span>Note spacing: <b id="sv">100 ms</b></span><input id="sp" type="range" min="8" max="500" step="1" value="100"></label>
+    <div class="bpmbox"><label class="chk" title="Off by default. When on, the tempo sets the note spacing for rolls, rudiments and ghost-note figures, and the Note spacing slider is switched off. Every other control keeps working as before."><input id="bpmon" type="checkbox"><span>Use tempo (BPM)</span></label>
+    <label title="Tempo in beats per minute, counted in quarter notes, as on a metronome."><span>Tempo (quarter notes): <b id="bpv">120 BPM</b></span><input id="bpm" type="range" min="40" max="240" step="1" value="120" disabled></label>
+    <label title="Auto: every pattern is spaced the way it is normally written (rolls in 32nds, paradiddle in 16ths, jazz figures in triplets, and so on). Or pick one note value to use for all patterns."><span>Note value</span><select id="bpmnote" disabled><option value="auto" selected>Auto: each pattern's usual notation</option><option value="1">Quarter notes</option><option value="2">8th notes</option><option value="3">8th-note triplets</option><option value="4">16th notes</option><option value="6">16th-note triplets</option><option value="8">32nd notes</option></select></label></div>
     <label title="How much the timing of each hit wanders"><span>Humanize tempo: <b id="htv">50%</b></span><input id="humt" type="range" min="0" max="100" value="50"></label>
     <label title="How much each hit's volume and tone wander"><span>Humanize dynamics: <b id="hdv">50%</b></span><input id="humd" type="range" min="0" max="100" value="50"></label>
   </div></div>
@@ -379,9 +383,19 @@ function drawTimeline(){
   const wn=$("rlwarn"),big=S&&$("ringon").checked&&ringEff()>.5*w.T;
   wn.hidden=!big;if(big)wn.textContent=`Ring-out is taking most of the file. Try Short snare (${Math.min(200,+$("ringlen").max)} ms).`;
 }
-function refresh(){syncLimits();drawTimeline();xinfo()}
+function refresh(){syncLimits();bpmSync();drawTimeline();xinfo()}
 bind("len","lv",fmtT,refresh);
 bind("sp","sv",msf);
+bind("bpm","bpv",v=>v+" BPM");
+function bpmSync(){
+  const on=$("bpmon").checked;
+  $("bpm").disabled=!on;$("bpmnote").disabled=!on;$("sp").disabled=on;
+  const auto=$("bpmnote").value==="auto",ms=Math.round(Math.min(spacingMs(),win().span*500));
+  $("sv").textContent=on?(auto?"set by tempo, per pattern":ms+" ms (from tempo)"):$("sp").value+" ms";
+}
+$("bpmon").onchange=()=>{bpmSync();if(S&&$("auto").checked)generate(false)};
+$("bpm").addEventListener("input",bpmSync);$("bpmnote").onchange=()=>{bpmSync();if(S&&$("auto").checked)generate(false)};
+$("sp").addEventListener("input",()=>{if($("bpmon").checked)bpmSync()});
 bind("humt","htv",pc);bind("humd","hdv",pc);
 bind("tail","tv",msf,refresh);bind("ringlen","rlv",rlFmt,refresh);
 bind("bgap","bgv",msf);bind("bdec","bdv",pc);
@@ -390,8 +404,17 @@ $("ringon").onchange=refresh;
 
 // ---------- pattern generators: each returns the hit list [{t,v,p}] (seconds, velocity 0-1, semitones) ----------
 // The editor draws one control per entry of this list, and the renderer plays exactly this list.
+// strokes per quarter note that each pattern is normally written in (used by Auto): 8 = 32nds, 6 = 16th triplets, 4 = 16ths, 3 = 8th triplets
+let curCode=null;
+const DIV={er:8,ar:8,cr:8,dc:8,ac:8,de:8,bz:8,sw:8,op:8,pu:8,r5:8,r7:8,r9:8,r11:8,r3:6,ds:8,pd:4,pdd:6,
+  j4:4,j5:4,j7:8,j6:3,j8:3,j9:3,j10:3,j11:3,j12:3,ft:4,fa:3,ra:6};
+function spacingMs(){
+  if(!$("bpmon").checked)return +$("sp").value;
+  const sel=$("bpmnote").value,div=sel==="auto"?(DIV[curCode]||4):+sel;
+  return 60000/(+$("bpm").value)/div;
+}
 function P(){
-  const w=win(),sp0=+$("sp").value/1000;
+  const w=win(),sp0=spacingMs()/1000;
   return{...w,ht:+$("humt").value/100,hd:+$("humd").value/100,
     sp:Math.max(.004,Math.min(sp0,w.span/2)),
     bg:+$("bgap").value/1000,bd:+$("bdec").value/100,gl:+$("ghl").value/100};
@@ -915,7 +938,7 @@ function generate(reset){
     list.forEach(([title,desc,code,fn])=>{
       const i=idx++;let p=keep[code];
       if(p)kept++;
-      else{const hits=fn();p={title,desc,code,n:count,hits,cut:hits.cut||0,env:mkEnv("flat"),T:TT(),rl:ringEff()};
+      else{curCode=code;const hits=fn();p={title,desc,code,n:count,hits,cut:hits.cut||0,env:mkEnv("flat"),T:TT(),rl:ringEff()};
         p.orig=p.hits.map(h=>({...h}));p.envEnd=envEndOf(p);renderPat(p)}
       pats.push(p);box.appendChild(buildCard(p,i));markEdited(p);
     });
@@ -1071,6 +1094,6 @@ function delPt(e){
 c2.oncontextmenu=e=>{e.preventDefault();dragPt=-1;delPt(e)};   // right-click (or long-press on touch) deletes the dot
 c2.ondblclick=delPt;
 // Auto re-roll: when the switch is on, letting go of a slider rebuilds the samples (edited ones are kept)
-["len","sp","humt","humd","ringlen","tail","bgap","bdec","ghl","ringon"].forEach(id=>$(id).addEventListener("change",()=>{if(S&&$("auto").checked)generate(false)}));
+["len","sp","bpm","humt","humd","ringlen","tail","bgap","bdec","ghl","ringon"].forEach(id=>$(id).addEventListener("change",()=>{if(S&&$("auto").checked)generate(false)}));
 refresh();
 </script></body></html>
